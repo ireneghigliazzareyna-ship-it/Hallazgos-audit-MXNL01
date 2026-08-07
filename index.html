@@ -12,9 +12,7 @@
             --text-color: #333333;
             --border-color: #e2e8f0;
             --blue-header: #1d4ed8;
-            --blue-accent: #2563eb;
             --green-header: #15803d;
-            --green-accent: #16a34a;
         }
 
         body {
@@ -47,7 +45,6 @@
             margin-bottom: 20px;
         }
 
-        /* NAVEGACIÓN POR PESTAÑAS */
         .tabs-container {
             display: flex;
             justify-content: center;
@@ -79,7 +76,6 @@
             box-shadow: 0 4px 12px rgba(21, 128, 61, 0.35);
         }
 
-        /* PANELES */
         .panel {
             background: var(--card-bg);
             border-radius: 12px;
@@ -115,7 +111,7 @@
 
         .filters-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -276,6 +272,14 @@
         
         <div class="filters-grid">
             <div class="filter-group">
+                <label>Fecha Inicio:</label>
+                <input type="date" id="filter-fecha-inicio" onchange="filtrarSheets()">
+            </div>
+            <div class="filter-group">
+                <label>Fecha Fin:</label>
+                <input type="date" id="filter-fecha-fin" onchange="filtrarSheets()">
+            </div>
+            <div class="filter-group">
                 <label>Auditor:</label>
                 <select id="filter-auditor" onchange="filtrarSheets()">
                     <option value="">Todos los auditores</option>
@@ -288,20 +292,14 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label>Fecha (Marca Temporal):</label>
-                <select id="filter-fecha" onchange="filtrarSheets()">
-                    <option value="">Todas las fechas</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Búsqueda libre (MELI, Redacción):</label>
-                <input type="text" id="search-sheets" placeholder="Buscar texto..." oninput="filtrarSheets()">
+                <label>Buscar (MELI / Redacción):</label>
+                <input type="text" id="search-sheets" placeholder="Escribe para buscar..." oninput="filtrarSheets()">
             </div>
         </div>
 
         <div class="kpi-container">
             <div class="kpi-card">
-                <div class="kpi-title">Total Registros</div>
+                <div class="kpi-title">TOTAL AUDITORÍAS / HALLAZGOS</div>
                 <div class="kpi-value-green" id="kpi-auditorias-total">0</div>
             </div>
             <div class="kpi-card">
@@ -315,7 +313,7 @@
         </div>
 
         <div class="chart-box">
-            <div style="text-align: center; font-weight: bold; color: #15803d; margin-bottom: 10px; font-size: 0.85rem;">MONTO TOTAL REGISTRADO POR AUDITOR (USD / MONEDA LOCAL)</div>
+            <div style="text-align: center; font-weight: bold; color: #15803d; margin-bottom: 10px; font-size: 0.85rem;">TIPOS DE AUDITORÍA CON MÁS HALLAZGOS</div>
             <div style="position: relative; height: 300px; width: 100%;">
                 <canvas id="chartSheets"></canvas>
             </div>
@@ -358,7 +356,33 @@
         return parseFloat(num) || 0;
     }
 
-    // Cargar ambas fuentes JSON de forma simultánea
+    // Extrae monto buscando dinámicamente en cualquier campo que contenga 'monto'
+    function obtenerMontoGenerico(item) {
+        if (!item) return 0;
+        for (let key in item) {
+            if (key.toLowerCase().includes('monto')) {
+                let m = limpiarMonto(item[key]);
+                if (m > 0) return m;
+            }
+        }
+        return 0;
+    }
+
+    function parseFecha(str) {
+        if (!str || typeof str !== 'string') return null;
+        let parts = str.trim().split(' ')[0].split(/[\/-]/);
+        if (parts.length === 3) {
+            if (parts[0].length === 4) {
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            } else {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+        let d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Cargar ambas fuentes JSON
     Promise.all([
         fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
         fetch('auditorias.json?t=' + Date.now()).then(r => r.json()).catch(() => [])
@@ -369,17 +393,14 @@
         document.getElementById('status').style.display = 'none';
         document.getElementById('tabs-bar').style.display = 'flex';
 
-        // Inicializar Filtros de Sheets
         poblarFiltrosSheets(datosSheets);
 
-        // Renderizar ambas vistas
         filtrarSQL();
         filtrarSheets();
     }).catch(err => {
         document.getElementById('status').innerText = 'Error al cargar datos: ' + err.message;
     });
 
-    // Control de Pestañas
     function mostrarTab(tab) {
         const panelSQL = document.getElementById('panel-sql');
         const panelSheets = document.getElementById('panel-sheets');
@@ -399,7 +420,7 @@
         }
     }
 
-    // --- LÓGICA PARTE 1: INFLACIONES DE IS (SQL - AZUL) ---
+    // --- PARTE 1: INFLACIONES DE IS (SQL) ---
     function filtrarSQL() {
         const query = document.getElementById('search-sql').value.toLowerCase();
         
@@ -410,7 +431,6 @@
             return !query || sku.includes(query) || inboundId.includes(query) || seller.includes(query);
         });
 
-        // KPIs SQL
         const inboundsUnicos = new Set(resultados.map(d => d.inboundId)).size;
         const totalPiezas = resultados.reduce((sum, d) => sum + (parseInt(d.diferencia) || 0), 0);
         const totalUSD = resultados.reduce((sum, d) => sum + (parseFloat(d.diferenciaUsd) || 0), 0);
@@ -419,7 +439,6 @@
         document.getElementById('kpi-piezas').innerText = totalPiezas.toLocaleString();
         document.getElementById('kpi-usd').innerText = formatearDinero(totalUSD);
 
-        // Tabla SQL
         const tbody = document.getElementById('contenido-sql');
         if (resultados.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Sin resultados</td></tr>';
@@ -437,7 +456,6 @@
             `).join('');
         }
 
-        // Gráfica Azul (Top 10 Sellers)
         const impactoPorSeller = {};
         resultados.forEach(d => {
             const seller = d.nombreSeller || 'Desconocido';
@@ -471,54 +489,63 @@
         });
     }
 
-    // --- LÓGICA PARTE 2: HALLAZGOS AUDITORÍAS (SHEETS - VERDE) ---
+    // --- PARTE 2: HALLAZGOS AUDITORÍAS (SHEETS) ---
     function poblarFiltrosSheets(datos) {
         const auditores = new Set();
         const incidencias = new Set();
-        const fechas = new Set();
 
         datos.forEach(d => {
             if (d['Auditor 1']) auditores.add(d['Auditor 1']);
             if (d['Tipo de Incidencia']) incidencias.add(d['Tipo de Incidencia']);
-            if (d['Marca temporal']) {
-                const fechaCorta = String(d['Marca temporal']).split(' ')[0]; // Fecha simplificada
-                fechas.add(fechaCorta);
-            }
         });
 
         const selAuditor = document.getElementById('filter-auditor');
-        auditores.forEach(a => selAuditor.innerHTML += `<option value="${a}">${a}</option>`);
+        Array.from(auditores).sort().forEach(a => selAuditor.innerHTML += `<option value="${a}">${a}</option>`);
 
         const selIncidencia = document.getElementById('filter-incidencia');
-        incidencias.forEach(i => selIncidencia.innerHTML += `<option value="${i}">${i}</option>`);
-
-        const selFecha = document.getElementById('filter-fecha');
-        fechas.forEach(f => selFecha.innerHTML += `<option value="${f}">${f}</option>`);
+        Array.from(incidencias).sort().forEach(i => selIncidencia.innerHTML += `<option value="${i}">${i}</option>`);
     }
 
     function filtrarSheets() {
+        const fechaIniVal = document.getElementById('filter-fecha-inicio').value;
+        const fechaFinVal = document.getElementById('filter-fecha-fin').value;
         const auditorSel = document.getElementById('filter-auditor').value;
         const incidenciaSel = document.getElementById('filter-incidencia').value;
-        const fechaSel = document.getElementById('filter-fecha').value;
         const query = document.getElementById('search-sheets').value.toLowerCase();
+
+        const dateIni = fechaIniVal ? new Date(fechaIniVal + 'T00:00:00') : null;
+        const dateFin = fechaFinVal ? new Date(fechaFinVal + 'T23:59:59') : null;
 
         const resultados = datosSheets.filter(item => {
             const auditor = item['Auditor 1'] || '';
             const incidencia = item['Tipo de Incidencia'] || '';
-            const fecha = item['Marca temporal'] || '';
             const meli = String(item['Meli'] || '').toLowerCase();
             const redaccion = String(item['Redacción de la incidencia'] || '').toLowerCase();
 
+            // Filtro de Fechas Rango
+            let matchFecha = true;
+            const itemDate = parseFecha(item['Marca temporal']);
+            if (itemDate) {
+                if (dateIni && itemDate < dateIni) matchFecha = false;
+                if (dateFin && itemDate > dateFin) matchFecha = false;
+            }
+
             const matchAuditor = !auditorSel || auditor === auditorSel;
             const matchIncidencia = !incidenciaSel || incidencia === incidenciaSel;
-            const matchFecha = !fechaSel || fecha.includes(fechaSel);
             const matchQuery = !query || meli.includes(query) || redaccion.includes(query);
 
-            return matchAuditor && matchIncidencia && matchFecha && matchQuery;
+            return matchFecha && matchAuditor && matchIncidencia && matchQuery;
+        });
+
+        // Ordenar registros por fecha (de más reciente a más antiguo)
+        resultados.sort((a, b) => {
+            const dA = parseFecha(a['Marca temporal']) || new Date(0);
+            const dB = parseFecha(b['Marca temporal']) || new Date(0);
+            return dB - dA;
         });
 
         // KPIs Sheets
-        const totalMonto = resultados.reduce((sum, d) => sum + limpiarMonto(d['Monto total de incidencia']), 0);
+        const totalMonto = resultados.reduce((sum, d) => sum + obtenerMontoGenerico(d), 0);
         const auditoresUnicos = new Set(resultados.map(d => d['Auditor 1']).filter(Boolean)).size;
 
         document.getElementById('kpi-auditorias-total').innerText = resultados.length.toLocaleString();
@@ -537,7 +564,7 @@
                     <td>${item['Tipo de Incidencia'] || '-'}</td>
                     <td><code>${item['Meli'] || '-'}</code></td>
                     <td style="max-width:250px; font-size:0.85rem;">${item['Redacción de la incidencia'] || '-'}</td>
-                    <td class="monto-verde">${formatearDinero(limpiarMonto(item['Monto total de incidencia']))}</td>
+                    <td class="monto-verde">${formatearDinero(obtenerMontoGenerico(item))}</td>
                     <td>
                         ${item['Link de evidencia en WMS'] ? `<a class="link-wms" href="${item['Link de evidencia en WMS']}" target="_blank">Ver WMS</a>` : '-'}
                     </td>
@@ -545,28 +572,28 @@
             `).join('');
         }
 
-        // Gráfica Verde (Monto por Auditor)
-        const montoPorAuditor = {};
+        // Gráfica Verde: Hallazgos por Tipo de Auditoría / Incidencia
+        const conteoPorIncidencia = {};
         resultados.forEach(d => {
-            const auditor = d['Auditor 1'] || 'Sin Asignar';
-            montoPorAuditor[auditor] = (montoPorAuditor[auditor] || 0) + limpiarMonto(d['Monto total de incidencia']);
+            const inc = d['Tipo de Incidencia'] || 'Sin Especificar';
+            conteoPorIncidencia[inc] = (conteoPorIncidencia[inc] || 0) + 1;
         });
 
-        const topAuditores = Object.keys(montoPorAuditor)
-            .sort((a, b) => montoPorAuditor[b] - montoPorAuditor[a])
+        const topIncidencias = Object.keys(conteoPorIncidencia)
+            .sort((a, b) => conteoPorIncidencia[b] - conteoPorIncidencia[a])
             .slice(0, 10);
 
-        const dataAuditores = topAuditores.map(a => montoPorAuditor[a]);
+        const dataIncidencias = topIncidencias.map(i => conteoPorIncidencia[i]);
 
         if (chartSheetsInstancia) chartSheetsInstancia.destroy();
         const ctx = document.getElementById('chartSheets').getContext('2d');
         chartSheetsInstancia = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: topAuditores,
+                labels: topIncidencias,
                 datasets: [{
-                    label: 'Monto Registrado',
-                    data: dataAuditores,
+                    label: 'Cantidad de Hallazgos',
+                    data: dataIncidencias,
                     backgroundColor: '#15803d',
                     borderRadius: 4
                 }]

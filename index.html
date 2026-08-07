@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Hallazgos de Auditorías - MXNL01</title>
+    <title>Dashboard MXNL01 - Inflaciones & Auditorías</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #f4f6f9;
             --card-bg: #ffffff;
             --text-color: #333333;
-            --main-header: #c2185b; /* Un tono diferente para distinguir el proyecto */
             --border-color: #e2e8f0;
+            --blue-header: #1d4ed8;
+            --blue-accent: #2563eb;
+            --green-header: #15803d;
+            --green-accent: #16a34a;
         }
 
         body {
@@ -23,48 +26,96 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
 
         h1 {
             text-align: center;
             color: #1e293b;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-transform: uppercase;
         }
 
         #status {
             text-align: center;
             padding: 15px;
-            background: #fce4ec;
-            color: #c2185b;
+            background: #e0f2fe;
+            color: #0369a1;
             border-radius: 8px;
             font-weight: bold;
             margin-bottom: 20px;
         }
 
+        /* NAVEGACIÓN POR PESTAÑAS */
+        .tabs-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .tab-btn.active-blue {
+            background: var(--blue-header);
+            color: white;
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+        }
+
+        .tab-btn.active-green {
+            background: var(--green-header);
+            color: white;
+            box-shadow: 0 4px 12px rgba(21, 128, 61, 0.35);
+        }
+
+        /* PANELES */
         .panel {
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px -2px rgba(0,0,0,0.08);
+            display: none;
         }
 
-        .panel-header {
-            padding: 12px 20px;
+        .panel.active {
+            display: block;
+        }
+
+        .panel-header-blue {
+            padding: 14px 20px;
             border-radius: 8px;
-            background-color: var(--main-header);
+            background-color: var(--blue-header);
             color: white;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .panel-header-green {
+            padding: 14px 20px;
+            border-radius: 8px;
+            background-color: var(--green-header);
+            color: white;
+            font-size: 1.3rem;
             font-weight: bold;
             margin-bottom: 20px;
         }
 
         .filters-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -81,11 +132,13 @@
             color: #64748b;
         }
 
-        input {
-            padding: 8px 12px;
+        input, select {
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             outline: none;
+            font-size: 0.9rem;
+            background-color: #ffffff;
         }
 
         .kpi-container {
@@ -104,7 +157,8 @@
         }
 
         .kpi-title { font-size: 0.85rem; color: #64748b; text-transform: uppercase; font-weight: bold; }
-        .kpi-value { font-size: 1.8rem; font-weight: bold; margin-top: 10px; color: var(--main-header); }
+        .kpi-value-blue { font-size: 1.8rem; font-weight: bold; margin-top: 10px; color: var(--blue-header); }
+        .kpi-value-green { font-size: 1.8rem; font-weight: bold; margin-top: 10px; color: var(--green-header); }
 
         .chart-box {
             background: #ffffff;
@@ -116,7 +170,7 @@
         }
 
         .table-container {
-            max-height: 400px;
+            max-height: 420px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -139,47 +193,62 @@
             position: sticky;
             top: 0;
             color: #475569;
+            z-index: 10;
         }
 
         .monto-alerta { color: #d32f2f; font-weight: bold; }
+        .monto-verde { color: #15803d; font-weight: bold; }
+        .link-wms { color: #2563eb; text-decoration: none; font-weight: 600; }
+        .link-wms:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Dashboard Hallazgos de Auditorías - MXNL01</h1>
+    <h1>Dashboard de Control - MXNL01</h1>
     
-    <div id="status">Cargando datos de discrepancias...</div>
+    <div id="status">Cargando bases de datos de BigQuery y Google Sheets...</div>
 
-    <div class="panel" id="main-panel" style="display:none;">
-        <div class="panel-header">Discrepancias Inbound P2M</div>
+    <!-- Botones de Navegación -->
+    <div class="tabs-container" id="tabs-bar" style="display:none;">
+        <button class="tab-btn active-blue" id="btn-tab-sql" onclick="mostrarTab('sql')">
+            🔹 Inflaciones de IS (Query SQL)
+        </button>
+        <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">
+            🟢 Hallazgos Auditorías (Forms)
+        </button>
+    </div>
+
+    <!-- SECCIÓN 1: INFLACIONES DE IS (AZUL) -->
+    <div class="panel active" id="panel-sql">
+        <div class="panel-header-blue">Inflaciones de IS (BigQuery)</div>
         
         <div class="filters-grid">
             <div class="filter-group">
                 <label>Buscar (SKU, Inbound o Seller):</label>
-                <input type="text" id="search" placeholder="Escribe para buscar..." oninput="filtrarDatos()">
+                <input type="text" id="search-sql" placeholder="Escribe para buscar..." oninput="filtrarSQL()">
             </div>
         </div>
 
         <div class="kpi-container">
             <div class="kpi-card">
                 <div class="kpi-title">Inbounds Afectados</div>
-                <div class="kpi-value" id="kpi-inbounds">0</div>
+                <div class="kpi-value-blue" id="kpi-inbounds">0</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Total Piezas Diferencia</div>
-                <div class="kpi-value" id="kpi-piezas">0</div>
+                <div class="kpi-value-blue" id="kpi-piezas">0</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-title">Impacto Total (USD)</div>
-                <div class="kpi-value" id="kpi-usd">$0.00</div>
+                <div class="kpi-value-blue" id="kpi-usd">$0.00</div>
             </div>
         </div>
 
         <div class="chart-box">
-            <div style="text-align: center; font-weight: bold; color: #64748b; margin-bottom: 10px; font-size: 0.85rem;">IMPACTO USD POR SELLER (TOP 10)</div>
+            <div style="text-align: center; font-weight: bold; color: #1d4ed8; margin-bottom: 10px; font-size: 0.85rem;">IMPACTO USD POR SELLER (TOP 10)</div>
             <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="chartSellers"></canvas>
+                <canvas id="chartSQL"></canvas>
             </div>
         </div>
 
@@ -196,107 +265,309 @@
                         <th>Diferencia USD</th>
                     </tr>
                 </thead>
-                <tbody id="contenido"></tbody>
+                <tbody id="contenido-sql"></tbody>
             </table>
         </div>
     </div>
+
+    <!-- SECCIÓN 2: HALLAZGOS AUDITORÍAS (VERDE) -->
+    <div class="panel" id="panel-sheets">
+        <div class="panel-header-green">Hallazgos Auditorías (Google Sheets)</div>
+        
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label>Auditor:</label>
+                <select id="filter-auditor" onchange="filtrarSheets()">
+                    <option value="">Todos los auditores</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Tipo de Auditoría / Incidencia:</label>
+                <select id="filter-incidencia" onchange="filtrarSheets()">
+                    <option value="">Todas las incidencias</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Fecha (Marca Temporal):</label>
+                <select id="filter-fecha" onchange="filtrarSheets()">
+                    <option value="">Todas las fechas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Búsqueda libre (MELI, Redacción):</label>
+                <input type="text" id="search-sheets" placeholder="Buscar texto..." oninput="filtrarSheets()">
+            </div>
+        </div>
+
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Registros</div>
+                <div class="kpi-value-green" id="kpi-auditorias-total">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Monto Total Reportado</div>
+                <div class="kpi-value-green" id="kpi-auditorias-monto">$0.00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Auditores Activos</div>
+                <div class="kpi-value-green" id="kpi-auditorias-auditores">0</div>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <div style="text-align: center; font-weight: bold; color: #15803d; margin-bottom: 10px; font-size: 0.85rem;">MONTO TOTAL REGISTRADO POR AUDITOR (USD / MONEDA LOCAL)</div>
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="chartSheets"></canvas>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Marca Temporal</th>
+                        <th>Auditor</th>
+                        <th>Tipo de Incidencia</th>
+                        <th>MELI</th>
+                        <th>Redacción / Detalle</th>
+                        <th>Monto Incidencia</th>
+                        <th>Evidencia WMS</th>
+                    </tr>
+                </thead>
+                <tbody id="contenido-sheets"></tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    let datosOriginales = [];
-    let chartInstancia = null;
+    let datosSQL = [];
+    let datosSheets = [];
+    let chartSQLInstancia = null;
+    let chartSheetsInstancia = null;
 
-    function formatearDinero(num) { 
-        return '$' + parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+    function formatearDinero(num) {
+        const val = parseFloat(num) || 0;
+        return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    // El archivo será data.json proveniente del nodo n8n
-    fetch('data.json?timestamp=' + new Date().getTime())
-        .then(res => res.json())
-        .then(data => {
-            datosOriginales = data;
-            document.getElementById('status').style.display = 'none';
-            document.getElementById('main-panel').style.display = 'block';
-            filtrarDatos();
-        })
-        .catch(err => {
-            document.getElementById('status').innerText = 'Error al cargar data.json: ' + err.message;
-        });
+    function limpiarMonto(val) {
+        if (!val) return 0;
+        const num = String(val).replace(/[^0-9.-]+/g, "");
+        return parseFloat(num) || 0;
+    }
 
-    function filtrarDatos() {
-        const textoBusqueda = document.getElementById('search').value.toLowerCase();
+    // Cargar ambas fuentes JSON de forma simultánea
+    Promise.all([
+        fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
+        fetch('auditorias.json?t=' + Date.now()).then(r => r.json()).catch(() => [])
+    ]).then(([dataSQL, dataSheets]) => {
+        datosSQL = dataSQL;
+        datosSheets = dataSheets;
+
+        document.getElementById('status').style.display = 'none';
+        document.getElementById('tabs-bar').style.display = 'flex';
+
+        // Inicializar Filtros de Sheets
+        poblarFiltrosSheets(datosSheets);
+
+        // Renderizar ambas vistas
+        filtrarSQL();
+        filtrarSheets();
+    }).catch(err => {
+        document.getElementById('status').innerText = 'Error al cargar datos: ' + err.message;
+    });
+
+    // Control de Pestañas
+    function mostrarTab(tab) {
+        const panelSQL = document.getElementById('panel-sql');
+        const panelSheets = document.getElementById('panel-sheets');
+        const btnSQL = document.getElementById('btn-tab-sql');
+        const btnSheets = document.getElementById('btn-tab-sheets');
+
+        if (tab === 'sql') {
+            panelSQL.classList.add('active');
+            panelSheets.classList.remove('active');
+            btnSQL.className = 'tab-btn active-blue';
+            btnSheets.className = 'tab-btn';
+        } else {
+            panelSheets.classList.add('active');
+            panelSQL.classList.remove('active');
+            btnSheets.className = 'tab-btn active-green';
+            btnSQL.className = 'tab-btn';
+        }
+    }
+
+    // --- LÓGICA PARTE 1: INFLACIONES DE IS (SQL - AZUL) ---
+    function filtrarSQL() {
+        const query = document.getElementById('search-sql').value.toLowerCase();
         
-        const resultados = datosOriginales.filter(item => {
+        const resultados = datosSQL.filter(item => {
             const sku = String(item.sku || '').toLowerCase();
             const inboundId = String(item.inboundId || '').toLowerCase();
             const seller = String(item.nombreSeller || '').toLowerCase();
-            
-            return !textoBusqueda || sku.includes(textoBusqueda) || inboundId.includes(textoBusqueda) || seller.includes(textoBusqueda);
+            return !query || sku.includes(query) || inboundId.includes(query) || seller.includes(query);
         });
 
-        actualizarKPIs(resultados);
-        actualizarTabla(resultados);
-        actualizarGrafica(resultados);
-    }
-
-    function actualizarKPIs(datos) {
-        const inboundsUnicos = new Set(datos.map(d => d.inboundId)).size;
-        const totalPiezas = datos.reduce((sum, d) => sum + (parseInt(d.diferencia) || 0), 0);
-        const totalUSD = datos.reduce((sum, d) => sum + (parseFloat(d.diferenciaUsd) || 0), 0);
+        // KPIs SQL
+        const inboundsUnicos = new Set(resultados.map(d => d.inboundId)).size;
+        const totalPiezas = resultados.reduce((sum, d) => sum + (parseInt(d.diferencia) || 0), 0);
+        const totalUSD = resultados.reduce((sum, d) => sum + (parseFloat(d.diferenciaUsd) || 0), 0);
 
         document.getElementById('kpi-inbounds').innerText = inboundsUnicos.toLocaleString();
         document.getElementById('kpi-piezas').innerText = totalPiezas.toLocaleString();
         document.getElementById('kpi-usd').innerText = formatearDinero(totalUSD);
-    }
 
-    function actualizarTabla(datos) {
-        const tbody = document.getElementById('contenido');
-        if (datos.length === 0) {
+        // Tabla SQL
+        const tbody = document.getElementById('contenido-sql');
+        if (resultados.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Sin resultados</td></tr>';
-            return;
+        } else {
+            tbody.innerHTML = resultados.map(item => `
+                <tr>
+                    <td><strong>${item.inboundId || '-'}</strong></td>
+                    <td>${item.nombreSeller || '-'}</td>
+                    <td><code>${item.sku || '-'}</code></td>
+                    <td>${item.cantDeclarada ?? '-'}</td>
+                    <td>${item.cantRecibida ?? '-'}</td>
+                    <td style="font-weight:bold;">${item.diferencia ?? '-'}</td>
+                    <td class="monto-alerta">${formatearDinero(item.diferenciaUsd)}</td>
+                </tr>
+            `).join('');
         }
 
-        tbody.innerHTML = datos.map(item => `
-            <tr>
-                <td><strong>${item.inboundId}</strong></td>
-                <td>${item.nombreSeller}</td>
-                <td><code>${item.sku}</code></td>
-                <td>${item.cantDeclarada}</td>
-                <td>${item.cantRecibida}</td>
-                <td style="font-weight:bold;">${item.diferencia}</td>
-                <td class="monto-alerta">${formatearDinero(item.diferenciaUsd)}</td>
-            </tr>
-        `).join('');
-    }
-
-    function actualizarGrafica(datos) {
+        // Gráfica Azul (Top 10 Sellers)
         const impactoPorSeller = {};
-        
-        // Agrupar impacto USD por Seller
-        datos.forEach(d => {
+        resultados.forEach(d => {
             const seller = d.nombreSeller || 'Desconocido';
-            const usd = parseFloat(d.diferenciaUsd) || 0;
-            impactoPorSeller[seller] = (impactoPorSeller[seller] || 0) + usd;
+            impactoPorSeller[seller] = (impactoPorSeller[seller] || 0) + (parseFloat(d.diferenciaUsd) || 0);
         });
 
-        // Ordenar de mayor a menor y tomar los primeros 10
         const topSellers = Object.keys(impactoPorSeller)
             .sort((a, b) => impactoPorSeller[b] - impactoPorSeller[a])
             .slice(0, 10);
 
-        const dataSellers = topSellers.map(seller => impactoPorSeller[seller]);
+        const dataSellers = topSellers.map(s => impactoPorSeller[s]);
 
-        if (chartInstancia) chartInstancia.destroy();
-
-        const ctx = document.getElementById('chartSellers').getContext('2d');
-        chartInstancia = new Chart(ctx, {
+        if (chartSQLInstancia) chartSQLInstancia.destroy();
+        const ctx = document.getElementById('chartSQL').getContext('2d');
+        chartSQLInstancia = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: topSellers,
                 datasets: [{
                     label: 'Impacto (USD)',
                     data: dataSellers,
-                    backgroundColor: '#c2185b',
+                    backgroundColor: '#1d4ed8',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // --- LÓGICA PARTE 2: HALLAZGOS AUDITORÍAS (SHEETS - VERDE) ---
+    function poblarFiltrosSheets(datos) {
+        const auditores = new Set();
+        const incidencias = new Set();
+        const fechas = new Set();
+
+        datos.forEach(d => {
+            if (d['Auditor 1']) auditores.add(d['Auditor 1']);
+            if (d['Tipo de Incidencia']) incidencias.add(d['Tipo de Incidencia']);
+            if (d['Marca temporal']) {
+                const fechaCorta = String(d['Marca temporal']).split(' ')[0]; // Fecha simplificada
+                fechas.add(fechaCorta);
+            }
+        });
+
+        const selAuditor = document.getElementById('filter-auditor');
+        auditores.forEach(a => selAuditor.innerHTML += `<option value="${a}">${a}</option>`);
+
+        const selIncidencia = document.getElementById('filter-incidencia');
+        incidencias.forEach(i => selIncidencia.innerHTML += `<option value="${i}">${i}</option>`);
+
+        const selFecha = document.getElementById('filter-fecha');
+        fechas.forEach(f => selFecha.innerHTML += `<option value="${f}">${f}</option>`);
+    }
+
+    function filtrarSheets() {
+        const auditorSel = document.getElementById('filter-auditor').value;
+        const incidenciaSel = document.getElementById('filter-incidencia').value;
+        const fechaSel = document.getElementById('filter-fecha').value;
+        const query = document.getElementById('search-sheets').value.toLowerCase();
+
+        const resultados = datosSheets.filter(item => {
+            const auditor = item['Auditor 1'] || '';
+            const incidencia = item['Tipo de Incidencia'] || '';
+            const fecha = item['Marca temporal'] || '';
+            const meli = String(item['Meli'] || '').toLowerCase();
+            const redaccion = String(item['Redacción de la incidencia'] || '').toLowerCase();
+
+            const matchAuditor = !auditorSel || auditor === auditorSel;
+            const matchIncidencia = !incidenciaSel || incidencia === incidenciaSel;
+            const matchFecha = !fechaSel || fecha.includes(fechaSel);
+            const matchQuery = !query || meli.includes(query) || redaccion.includes(query);
+
+            return matchAuditor && matchIncidencia && matchFecha && matchQuery;
+        });
+
+        // KPIs Sheets
+        const totalMonto = resultados.reduce((sum, d) => sum + limpiarMonto(d['Monto total de incidencia']), 0);
+        const auditoresUnicos = new Set(resultados.map(d => d['Auditor 1']).filter(Boolean)).size;
+
+        document.getElementById('kpi-auditorias-total').innerText = resultados.length.toLocaleString();
+        document.getElementById('kpi-auditorias-monto').innerText = formatearDinero(totalMonto);
+        document.getElementById('kpi-auditorias-auditores').innerText = auditoresUnicos;
+
+        // Tabla Sheets
+        const tbody = document.getElementById('contenido-sheets');
+        if (resultados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Sin resultados</td></tr>';
+        } else {
+            tbody.innerHTML = resultados.map(item => `
+                <tr>
+                    <td style="font-size:0.8rem; color:#64748b;">${item['Marca temporal'] || '-'}</td>
+                    <td><strong>${item['Auditor 1'] || '-'}</strong></td>
+                    <td>${item['Tipo de Incidencia'] || '-'}</td>
+                    <td><code>${item['Meli'] || '-'}</code></td>
+                    <td style="max-width:250px; font-size:0.85rem;">${item['Redacción de la incidencia'] || '-'}</td>
+                    <td class="monto-verde">${formatearDinero(limpiarMonto(item['Monto total de incidencia']))}</td>
+                    <td>
+                        ${item['Link de evidencia en WMS'] ? `<a class="link-wms" href="${item['Link de evidencia en WMS']}" target="_blank">Ver WMS</a>` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Gráfica Verde (Monto por Auditor)
+        const montoPorAuditor = {};
+        resultados.forEach(d => {
+            const auditor = d['Auditor 1'] || 'Sin Asignar';
+            montoPorAuditor[auditor] = (montoPorAuditor[auditor] || 0) + limpiarMonto(d['Monto total de incidencia']);
+        });
+
+        const topAuditores = Object.keys(montoPorAuditor)
+            .sort((a, b) => montoPorAuditor[b] - montoPorAuditor[a])
+            .slice(0, 10);
+
+        const dataAuditores = topAuditores.map(a => montoPorAuditor[a]);
+
+        if (chartSheetsInstancia) chartSheetsInstancia.destroy();
+        const ctx = document.getElementById('chartSheets').getContext('2d');
+        chartSheetsInstancia = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: topAuditores,
+                datasets: [{
+                    label: 'Monto Registrado',
+                    data: dataAuditores,
+                    backgroundColor: '#15803d',
                     borderRadius: 4
                 }]
             },

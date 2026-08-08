@@ -35,7 +35,7 @@
             padding: 0;
         }
 
-        /* Banner Superior estilo CAZALOST */
+        /* Banner Superior */
         .main-header-banner {
             background-color: #fbbf24;
             color: #1e3a8a;
@@ -188,7 +188,7 @@
 <body>
 
 <div class="main-header-banner">
-    <h1>TABLERO DE CONTROL: CAZALOST ➔ CCM</h1>
+    <h1>TABLERO DE CONTROL: HALLAZGOS DE AUDITORÍAS</h1>
     <p>Warehouse: MXNL01</p>
 </div>
 
@@ -200,7 +200,7 @@
             📊 Inflaciones de IS (Query SQL)
         </button>
         <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">
-            📝 Auditorías CAZALOST (Forms)
+            📝 Hallazgos de Auditorías (Forms)
         </button>
     </div>
 
@@ -306,10 +306,6 @@
             <div class="kpi-card">
                 <div class="kpi-title">Monto Total Involucrado</div>
                 <div class="kpi-value-green" id="kpi-auditorias-monto">$0.00</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-title">Auditores Participando</div>
-                <div class="kpi-value-green" id="kpi-auditorias-auditores">0</div>
             </div>
         </div>
 
@@ -460,7 +456,6 @@
     // SECCIÓN 2: AUDITORÍAS SHEETS (VERDE/AMARILLO DINÁMICO)
     // ==========================================
     
-    // Nombres probables para las columnas clave F, G, H, I, J
     const KEYS_FECHA_CREACION = ['Marca temporal', 'Timestamp', 'Fecha de creación', 'Fecha creacion', 'F'];
     const KEYS_AUDITOR1 = ['Auditor 1', 'Auditor', 'G'];
     const KEYS_AUDITOR2 = ['Auditor 2', 'H'];
@@ -470,7 +465,6 @@
 
     function buscarValor(obj, keysArray) {
         for(let k of keysArray) {
-            // Busca coincidencia exacta o parecida sin importar mayúsculas
             const foundKey = Object.keys(obj).find(ok => ok.toLowerCase().trim() === k.toLowerCase().trim());
             if(foundKey && obj[foundKey]) return obj[foundKey];
         }
@@ -508,14 +502,12 @@
             const a2 = buscarValor(d, KEYS_AUDITOR2) || '';
             const tipo = buscarValor(d, KEYS_TIPO) || '';
             
-            // Fecha (Toma la de creación o la de auditoría)
             let dt = parseFecha(fAudi) || parseFecha(fCreacion);
             if (dt) { if (dIni && dt < dIni) return false; if (dFin && dt > dFin) return false; }
 
             if (aSel && a1 !== aSel && a2 !== aSel) return false;
             if (iSel && tipo !== iSel) return false;
 
-            // Búsqueda en todo el JSON
             if (qStr) {
                 let text = Object.values(d).join(' ').toLowerCase();
                 if (!text.includes(qStr)) return false;
@@ -523,17 +515,13 @@
             return true;
         });
 
-        // Ordenar más recientes
         res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_CREACION))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_CREACION))||0));
 
         let totMonto = 0;
-        const audSet = new Set();
         
-        // --- GENERADOR MÁGICO DE TARJETAS DINÁMICAS ---
         const container = document.getElementById('contenido-sheets-cards');
         let htmlCards = '';
 
-        // Claves que ya pusimos en la cabecera y no queremos repetir abajo
         const omitirKeys = [...KEYS_FECHA_CREACION, ...KEYS_AUDITOR1, ...KEYS_AUDITOR2, ...KEYS_FECHA_AUDI, ...KEYS_TIPO, ...KEYS_MELI];
 
         res.forEach(d => {
@@ -543,27 +531,19 @@
             const a1 = buscarValor(d, KEYS_AUDITOR1) || 'Sin asignar';
             const a2 = buscarValor(d, KEYS_AUDITOR2);
 
-            audSet.add(a1); if(a2 && a2 !== '-') audSet.add(a2);
-
-            // Buscar si hay algún campo de dinero en todo el registro para el KPI
             for(let k in d) {
                 if(k.toLowerCase().includes('precio') || k.toLowerCase().includes('monto') || k.toLowerCase().includes('afectacion')) {
                     totMonto += (parseFloat(String(d[k]).replace(/[^0-9.-]+/g,"")) || 0);
                 }
             }
 
-            // Construir los campos dinámicos omitiendo los vacíos
             let camposDinamicosHTML = '';
             for (let key in d) {
                 let val = d[key];
-                // Si el valor existe, no está vacío y la columna no es de las omitidas
                 if (val && String(val).trim() !== '' && String(val).trim() !== '-' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
-                    
-                    // Si es un enlace, hacerlo clickeable
                     if (String(val).startsWith('http')) {
                         val = `<a href="${val}" target="_blank" class="dy-link">Ver Evidencia 🔗</a>`;
                     }
-
                     camposDinamicosHTML += `
                         <div class="dy-item">
                             <span class="dy-label">${key}</span>
@@ -605,9 +585,7 @@
 
         document.getElementById('kpi-auditorias-total').innerText = res.length;
         document.getElementById('kpi-auditorias-monto').innerText = formatearDinero(totMonto);
-        document.getElementById('kpi-auditorias-auditores').innerText = audSet.size;
 
-        // Gráfica Verde de Auditorías
         const countTipos = {};
         res.forEach(d => { let t = buscarValor(d, KEYS_TIPO) || 'Sin Especificar'; countTipos[t] = (countTipos[t] || 0) + 1; });
         const labelsTipos = Object.keys(countTipos).sort((a,b) => countTipos[b] - countTipos[a]).slice(0, 10);

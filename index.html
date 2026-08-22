@@ -124,10 +124,22 @@
         .kpi-value-red { font-size: 2.2rem; font-weight: 900; margin-top: 10px; color: var(--red-main); }
         .kpi-value-green { font-size: 2.2rem; font-weight: 900; margin-top: 10px; color: var(--green-main); }
 
-        /* Contenedores visuales */
+        /* Contenedores visuales para gráficas lado a lado */
         .chart-box {
             background: #ffffff; border-radius: 12px; padding: 20px; height: 350px;
             margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .chart-half {
+            background: #ffffff; border-radius: 12px; padding: 20px; height: 350px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
         /* Tabla IS (Roja) */
@@ -199,13 +211,15 @@
         <button class="tab-btn active-red" id="btn-tab-sql" onclick="mostrarTab('sql')">
             📊 Inflaciones de IS (Query SQL)
         </button>
+        <!-- Cambio de Texto: Se quitó el (Forms) -->
         <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">
-            📝 Hallazgos de Auditorías (Forms)
+            📝 Hallazgos de Auditorías
         </button>
     </div>
 
     <!-- SECCIÓN 1: INFLACIONES DE IS (ROJO/BEIGE) -->
     <div class="panel active" id="panel-sql">
+        <!-- Mantuvimos todo igual en la parte SQL -->
         <div class="filters-grid">
             <div class="filter-group">
                 <label>Fecha Inicio:</label>
@@ -270,7 +284,7 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 2: HALLAZGOS AUDITORÍAS (AMARILLO/VERDE ESTILO IMAGEN) -->
+    <!-- SECCIÓN 2: HALLAZGOS AUDITORÍAS -->
     <div class="panel" id="panel-sheets">
         <div class="filters-grid">
             <div class="filter-group">
@@ -309,12 +323,23 @@
             </div>
         </div>
 
-        <div class="chart-box">
-            <div style="text-align: center; font-weight: 900; color: #15803d; margin-bottom: 10px; text-transform: uppercase;">
-                Gráfica de Auditorías por Tipo
+        <!-- GRÁFICAS DOBLES LADO A LADO -->
+        <div class="charts-row">
+            <div class="chart-half">
+                <div style="text-align: center; font-weight: 900; color: #15803d; margin-bottom: 10px; text-transform: uppercase;">
+                    Hallazgos por Proceso
+                </div>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartProceso"></canvas>
+                </div>
             </div>
-            <div style="position: relative; height: 280px; width: 100%;">
-                <canvas id="chartSheets"></canvas>
+            <div class="chart-half">
+                <div style="text-align: center; font-weight: 900; color: #15803d; margin-bottom: 10px; text-transform: uppercase;">
+                    Hallazgos por Auditor
+                </div>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartAuditor"></canvas>
+                </div>
             </div>
         </div>
 
@@ -329,7 +354,8 @@
     let datosSQL = [];
     let datosSheets = [];
     let chartSQLInstancia = null;
-    let chartSheetsInstancia = null;
+    let chartProcesoInstancia = null;
+    let chartAuditorInstancia = null;
 
     // --- UTILIDADES ---
     function formatearDinero(num) {
@@ -351,10 +377,10 @@
         return arr.map(d => d.json ? d.json : d);
     }
 
-    // Cargar Datos
+    // Cargar Datos (¡ACTUALIZADO A HALLAZGOS.JSON!)
     Promise.all([
         fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
-        fetch('auditorias.json?t=' + Date.now()).then(r => r.json()).catch(() => [])
+        fetch('hallazgos.json?t=' + Date.now()).then(r => r.json()).catch(() => []) 
     ]).then(([dSQL, dSheets]) => {
         try {
             datosSQL = normalizarN8N(dSQL);
@@ -456,12 +482,12 @@
     // SECCIÓN 2: AUDITORÍAS SHEETS (VERDE/AMARILLO DINÁMICO)
     // ==========================================
     
-    const KEYS_FECHA_CREACION = ['Marca temporal', 'Timestamp', 'Fecha de creación', 'Fecha creacion', 'F'];
-    const KEYS_AUDITOR1 = ['Auditor 1', 'Auditor', 'G'];
-    const KEYS_AUDITOR2 = ['Auditor 2', 'H'];
-    const KEYS_FECHA_AUDI = ['💪Fecha Auditoria', 'Fecha Auditoria', 'Fecha de auditoria', 'I'];
-    const KEYS_TIPO = ['🔎TIPO DE AUDITORIA', 'TIPO DE AUDITORIA', 'Tipo de Auditoria', 'Tipo de Incidencia', 'J'];
-    const KEYS_MELI = ['Meli', 'MELICAM', 'ID', 'FBM'];
+    // Constantes de columnas actualizadas
+    const KEYS_FECHA_CREACION = ['Fecha de detección', 'Marca temporal', 'Timestamp', 'Fecha de creación'];
+    const KEYS_AUDITOR1 = ['Auditor 1', 'Auditor'];
+    const KEYS_PROCESO = ['Proceso'];
+    const KEYS_TIPO = ['Tipo de Hallazgo', 'Tipo de Auditoria', 'Tipo de Incidencia'];
+    const KEYS_MELI = ['MELI', 'ID', 'FBM'];
 
     function buscarValor(obj, keysArray) {
         for(let k of keysArray) {
@@ -477,7 +503,6 @@
 
         datos.forEach(d => {
             let a1 = buscarValor(d, KEYS_AUDITOR1); if (a1) auditores.add(a1);
-            let a2 = buscarValor(d, KEYS_AUDITOR2); if (a2 && a2 !== '-') auditores.add(a2);
             let t = buscarValor(d, KEYS_TIPO); if (t) tipos.add(t);
         });
 
@@ -497,15 +522,13 @@
 
         const res = datosSheets.filter(d => {
             const fCreacion = buscarValor(d, KEYS_FECHA_CREACION) || '';
-            const fAudi = buscarValor(d, KEYS_FECHA_AUDI) || '';
             const a1 = buscarValor(d, KEYS_AUDITOR1) || '';
-            const a2 = buscarValor(d, KEYS_AUDITOR2) || '';
             const tipo = buscarValor(d, KEYS_TIPO) || '';
             
-            let dt = parseFecha(fAudi) || parseFecha(fCreacion);
+            let dt = parseFecha(fCreacion);
             if (dt) { if (dIni && dt < dIni) return false; if (dFin && dt > dFin) return false; }
 
-            if (aSel && a1 !== aSel && a2 !== aSel) return false;
+            if (aSel && a1 !== aSel) return false;
             if (iSel && tipo !== iSel) return false;
 
             if (qStr) {
@@ -518,21 +541,28 @@
         res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_CREACION))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_CREACION))||0));
 
         let totMonto = 0;
+        const countProceso = {};
+        const countAuditor = {};
         
         const container = document.getElementById('contenido-sheets-cards');
         let htmlCards = '';
 
-        const omitirKeys = [...KEYS_FECHA_CREACION, ...KEYS_AUDITOR1, ...KEYS_AUDITOR2, ...KEYS_FECHA_AUDI, ...KEYS_TIPO, ...KEYS_MELI];
+        const omitirKeys = [...KEYS_FECHA_CREACION, ...KEYS_AUDITOR1, ...KEYS_PROCESO, ...KEYS_TIPO, ...KEYS_MELI];
 
         res.forEach(d => {
-            const meli = buscarValor(d, KEYS_MELI) || 'REGISTRO SIN ID';
+            // Elimine "REGISTRO SIN ID", ahora simplemente queda en blanco si no tiene
+            const meli = buscarValor(d, KEYS_MELI) || '&nbsp;';
             const tipo = buscarValor(d, KEYS_TIPO) || 'Pendiente de Clasificar';
             const fCrea = buscarValor(d, KEYS_FECHA_CREACION) || 'Sin fecha';
             const a1 = buscarValor(d, KEYS_AUDITOR1) || 'Sin asignar';
-            const a2 = buscarValor(d, KEYS_AUDITOR2);
+            const proceso = buscarValor(d, KEYS_PROCESO) || 'Sin especificar';
+
+            // Conteos para Gráficas
+            countProceso[proceso] = (countProceso[proceso] || 0) + 1;
+            countAuditor[a1] = (countAuditor[a1] || 0) + 1;
 
             for(let k in d) {
-                if(k.toLowerCase().includes('precio') || k.toLowerCase().includes('monto') || k.toLowerCase().includes('afectacion')) {
+                if(k.toLowerCase().includes('precio') || k.toLowerCase().includes('monto') || k.toLowerCase().includes('afectacion') || k.toLowerCase().includes('mxn')) {
                     totMonto += (parseFloat(String(d[k]).replace(/[^0-9.-]+/g,"")) || 0);
                 }
             }
@@ -561,19 +591,15 @@
                     </div>
                     
                     <div class="audi-meta">
-                        Registro: ${fCrea}
+                        Registro: ${fCrea} <br>
+                        Proceso: ${proceso}
                     </div>
 
                     <div class="audi-auditor-box">
                         <div class="audi-auditor-row">
-                            <span class="audi-auditor-label">AUDITOR 1:</span> 
+                            <span class="audi-auditor-label">AUDITOR:</span> 
                             <span class="audi-auditor-name">${a1}</span>
                         </div>
-                        ${a2 && a2 !== '-' ? `
-                        <div class="audi-auditor-row">
-                            <span class="audi-auditor-label">AUDITOR 2:</span> 
-                            <span class="audi-auditor-name">${a2}</span>
-                        </div>` : ''}
                     </div>
 
                     ${camposDinamicosHTML !== '' ? `<div class="audi-dynamic">${camposDinamicosHTML}</div>` : ''}
@@ -586,17 +612,46 @@
         document.getElementById('kpi-auditorias-total').innerText = res.length;
         document.getElementById('kpi-auditorias-monto').innerText = formatearDinero(totMonto);
 
-        const countTipos = {};
-        res.forEach(d => { let t = buscarValor(d, KEYS_TIPO) || 'Sin Especificar'; countTipos[t] = (countTipos[t] || 0) + 1; });
-        const labelsTipos = Object.keys(countTipos).sort((a,b) => countTipos[b] - countTipos[a]).slice(0, 10);
+        // --- Gráfica Izquierda: Proceso (Anillo / Doughnut) ---
+        if (chartProcesoInstancia) chartProcesoInstancia.destroy();
+        const ctxProceso = document.getElementById('chartProceso').getContext('2d');
+        chartProcesoInstancia = new Chart(ctxProceso, {
+            type: 'doughnut',
+            data: { 
+                labels: Object.keys(countProceso), 
+                datasets: [{ 
+                    data: Object.values(countProceso), 
+                    backgroundColor: ['#facc15', '#1e3a8a', '#dc2626', '#15803d', '#94a3b8', '#8b5cf6', '#f97316'] 
+                }] 
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { position: 'right' } },
+                cutout: '65%' // Hueco del anillo
+            }
+        });
 
-        if (chartSheetsInstancia) chartSheetsInstancia.destroy();
-        const ctx = document.getElementById('chartSheets').getContext('2d');
-        let grad = ctx.createLinearGradient(0, 0, 0, 300); grad.addColorStop(0, '#22c55e'); grad.addColorStop(1, '#15803d');
+        // --- Gráfica Derecha: Auditor (Barras) ---
+        if (chartAuditorInstancia) chartAuditorInstancia.destroy();
+        const ctxAuditor = document.getElementById('chartAuditor').getContext('2d');
+        let gradAuditor = ctxAuditor.createLinearGradient(0, 0, 0, 300); 
+        gradAuditor.addColorStop(0, '#22c55e'); 
+        gradAuditor.addColorStop(1, '#15803d');
 
-        chartSheetsInstancia = new Chart(ctx, {
+        // Ordenar Auditores de mayor a menor hallazgo
+        const auditoresOrdenados = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
+
+        chartAuditorInstancia = new Chart(ctxAuditor, {
             type: 'bar',
-            data: { labels: labelsTipos, datasets: [{ data: labelsTipos.map(l => countTipos[l]), backgroundColor: grad, borderRadius: 6 }] },
+            data: { 
+                labels: auditoresOrdenados, 
+                datasets: [{ 
+                    data: auditoresOrdenados.map(a => countAuditor[a]), 
+                    backgroundColor: gradAuditor, 
+                    borderRadius: 6 
+                }] 
+            },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
     }

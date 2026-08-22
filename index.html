@@ -157,7 +157,7 @@
         .audi-card {
             background: #ffffff; border-radius: 12px; padding: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.06); border: 1px solid #fef08a;
-            border-left: 6px solid #facc15; /* Borde amarillo grueso */
+            border-left: 6px solid #facc15;
             display: flex; flex-direction: column;
         }
 
@@ -180,7 +180,7 @@
         .audi-auditor-label { font-weight: 800; color: #475569; }
         .audi-auditor-name { color: var(--blue-auditor); font-weight: 700; }
 
-        /* Sección dinámica donde caerán todas las columnas con datos */
+        /* Sección dinámica */
         .audi-dynamic {
             border-top: 1px dashed #cbd5e1; padding-top: 15px; display: flex; flex-direction: column; gap: 10px;
         }
@@ -211,7 +211,6 @@
         <button class="tab-btn active-red" id="btn-tab-sql" onclick="mostrarTab('sql')">
             📊 Inflaciones de IS (Query SQL)
         </button>
-        <!-- Cambio de Texto: Se quitó el (Forms) -->
         <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">
             📝 Hallazgos de Auditorías
         </button>
@@ -219,7 +218,6 @@
 
     <!-- SECCIÓN 1: INFLACIONES DE IS (ROJO/BEIGE) -->
     <div class="panel active" id="panel-sql">
-        <!-- Mantuvimos todo igual en la parte SQL -->
         <div class="filters-grid">
             <div class="filter-group">
                 <label>Fecha Inicio:</label>
@@ -370,21 +368,55 @@
         return isNaN(d.getTime()) ? null : d;
     }
 
-    // Normalizador de arrays n8n
     function normalizarN8N(data) {
         if (!data) return [];
         let arr = Array.isArray(data) ? data : (data.data || data.results || Object.values(data) || []);
         return arr.map(d => d.json ? d.json : d);
     }
 
-    // Cargar Datos (¡ACTUALIZADO A HALLAZGOS.JSON!)
+    // --- TRADUCTOR MÁGICO DE COLUMNAS (Elimina los COL_1, COL_2...) ---
+    function limpiarDatosSheets(rawArray) {
+        let limpios = [];
+        rawArray.forEach(row => {
+            // Saltamos la fila de encabezados si n8n la jaló por error
+            if (row.COL_3 === "Auditor" || row.col_3 === "Auditor") return;
+            if (row.COL_2 === "Fecha de detección" || row.col_2 === "Fecha de detección") return;
+            
+            // Transformamos y asignamos el nombre correcto a cada columna
+            let nuevoObj = {
+                "Fecha de detección": row.COL_2 || row.col_2 || row["Fecha de detección"],
+                "Auditor": row.COL_3 || row.col_3 || row["Auditor"],
+                "Proceso": row.COL_4 || row.col_4 || row["Proceso"],
+                "Tipo de Hallazgo": row.COL_5 || row.col_5 || row["Tipo de Hallazgo"],
+                "Fecha de Incidencia": row.COL_6 || row.col_6 || row["Fecha de Incidencia"],
+                "Responsable": row.COL_7 || row.col_7 || row["Responsable"],
+                "MELI": row.COL_8 || row.col_8 || row["MELI"],
+                "Team Leader": row.COL_9 || row.col_9 || row["Team Leader"],
+                "Detalle del Hallazgo": row.COL_10 || row.col_10 || row["Detalle del Hallazgo"],
+                "MXN": row.COL_11 || row.col_11 || row["MXN"],
+                "Matriz de Disciplina": row.COL_12 || row.col_12 || row["Matriz de Disciplina"],
+                "Cierre": row.COL_13 || row.col_13 || row["Cierre"],
+                "Observaciones": row.COL_14 || row.col_14 || row["Observaciones"]
+            };
+            
+            // Solo agregamos la fila si tiene datos reales (para ignorar vacías)
+            if (nuevoObj["Auditor"] || nuevoObj["MELI"] || nuevoObj["Tipo de Hallazgo"]) {
+                limpios.push(nuevoObj);
+            }
+        });
+        return limpios;
+    }
+
+    // Cargar Datos
     Promise.all([
         fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
         fetch('hallazgos.json?t=' + Date.now()).then(r => r.json()).catch(() => []) 
     ]).then(([dSQL, dSheets]) => {
         try {
             datosSQL = normalizarN8N(dSQL);
-            datosSheets = normalizarN8N(dSheets);
+            // Pasamos los datos por el traductor mágico
+            datosSheets = limpiarDatosSheets(normalizarN8N(dSheets)); 
+
             document.getElementById('status').style.display = 'none';
             document.getElementById('tabs-bar').style.display = 'flex';
             
@@ -433,15 +465,11 @@
 
         const res = datosSQL.filter(item => {
             if ((parseFloat(item.diferencia) || 0) === 0) return false;
-            
             if (isSel && String(item.inboundId).toLowerCase() !== isSel.toLowerCase()) return false;
-            
             let dt = parseFecha(item.fecha || item.FBM_CREATED_DATE);
             if (dt) { if (dIni && dt < dIni) return false; if (dFin && dt > dFin) return false; }
-
             let qStr = (item.sku + ' ' + item.nombreSeller).toLowerCase();
             if (query && !qStr.includes(query)) return false;
-
             return true;
         });
 
@@ -479,15 +507,15 @@
     }
 
     // ==========================================
-    // SECCIÓN 2: AUDITORÍAS SHEETS (VERDE/AMARILLO DINÁMICO)
+    // SECCIÓN 2: AUDITORÍAS SHEETS
     // ==========================================
     
-    // Constantes de columnas actualizadas
-    const KEYS_FECHA_CREACION = ['Fecha de detección', 'Marca temporal', 'Timestamp', 'Fecha de creación'];
-    const KEYS_AUDITOR1 = ['Auditor 1', 'Auditor'];
+    // Al haber limpiado los datos, ahora las keys son perfectas
+    const KEYS_FECHA_CREACION = ['Fecha de detección'];
+    const KEYS_AUDITOR1 = ['Auditor'];
     const KEYS_PROCESO = ['Proceso'];
-    const KEYS_TIPO = ['Tipo de Hallazgo', 'Tipo de Auditoria', 'Tipo de Incidencia'];
-    const KEYS_MELI = ['MELI', 'ID', 'FBM'];
+    const KEYS_TIPO = ['Tipo de Hallazgo'];
+    const KEYS_MELI = ['MELI'];
 
     function buscarValor(obj, keysArray) {
         for(let k of keysArray) {
@@ -547,10 +575,10 @@
         const container = document.getElementById('contenido-sheets-cards');
         let htmlCards = '';
 
+        // Omitimos mostrar estas keys porque ya están en el encabezado de la tarjeta
         const omitirKeys = [...KEYS_FECHA_CREACION, ...KEYS_AUDITOR1, ...KEYS_PROCESO, ...KEYS_TIPO, ...KEYS_MELI];
 
         res.forEach(d => {
-            // Elimine "REGISTRO SIN ID", ahora simplemente queda en blanco si no tiene
             const meli = buscarValor(d, KEYS_MELI) || '&nbsp;';
             const tipo = buscarValor(d, KEYS_TIPO) || 'Pendiente de Clasificar';
             const fCrea = buscarValor(d, KEYS_FECHA_CREACION) || 'Sin fecha';
@@ -561,10 +589,10 @@
             countProceso[proceso] = (countProceso[proceso] || 0) + 1;
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
 
-            for(let k in d) {
-                if(k.toLowerCase().includes('precio') || k.toLowerCase().includes('monto') || k.toLowerCase().includes('afectacion') || k.toLowerCase().includes('mxn')) {
-                    totMonto += (parseFloat(String(d[k]).replace(/[^0-9.-]+/g,"")) || 0);
-                }
+            // Extraemos correctamente el monto de la columna MXN
+            let mxnVal = d["MXN"];
+            if (mxnVal) {
+                totMonto += (parseFloat(String(mxnVal).replace(/[^0-9.-]+/g,"")) || 0);
             }
 
             let camposDinamicosHTML = '';
@@ -632,12 +660,16 @@
             }
         });
 
-        // --- Gráfica Derecha: Auditor (Barras) ---
+        // --- Gráfica Derecha: Auditor (Barras Multicolor) ---
         if (chartAuditorInstancia) chartAuditorInstancia.destroy();
         const ctxAuditor = document.getElementById('chartAuditor').getContext('2d');
-        let gradAuditor = ctxAuditor.createLinearGradient(0, 0, 0, 300); 
-        gradAuditor.addColorStop(0, '#22c55e'); 
-        gradAuditor.addColorStop(1, '#15803d');
+        
+        // Paleta de colores vibrantes para presentaciones
+        const coloresAuditores = [
+            '#ef4444', '#3b82f6', '#f59e0b', '#10b981', 
+            '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', 
+            '#6366f1', '#eab308'
+        ];
 
         // Ordenar Auditores de mayor a menor hallazgo
         const auditoresOrdenados = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
@@ -648,7 +680,8 @@
                 labels: auditoresOrdenados, 
                 datasets: [{ 
                     data: auditoresOrdenados.map(a => countAuditor[a]), 
-                    backgroundColor: gradAuditor, 
+                    // Asignamos un color distinto de la paleta a cada barra
+                    backgroundColor: auditoresOrdenados.map((_, i) => coloresAuditores[i % coloresAuditores.length]), 
                     borderRadius: 6 
                 }] 
             },

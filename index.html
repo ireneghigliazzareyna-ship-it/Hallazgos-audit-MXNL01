@@ -9,9 +9,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
 
         :root {
-            --bg-main: #fefce8; /* Fondo beige claro idéntico a Grid */
-            --header-bg: #fbbf24; /* Amarillo del banner */
-            --header-text: #1e3a8a; /* Azul oscuro del título */
+            --bg-main: #fefce8; 
+            --header-bg: #fbbf24; 
+            --header-text: #1e3a8a; 
             --card-bg: #ffffff;
             --text-dark: #1e293b;
             --text-muted: #64748b;
@@ -83,7 +83,7 @@
         .panel.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FILTROS (UNA SOLA CAJA BLANCA) */
+        /* FILTROS */
         .filters-wrapper {
             background: var(--card-bg);
             border-radius: 16px;
@@ -128,9 +128,8 @@
         .kpi-number { font-size: 3.5rem; font-weight: 900; }
         .text-red { color: #dc2626; }
         .text-orange { color: #ea580c; }
-        .text-green { color: #16a34a; }
 
-        /* GRÁFICOS (3 COLUMNAS) */
+        /* GRÁFICOS */
         .charts-3-col { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
@@ -153,7 +152,7 @@
         }
         .canvas-container { position: relative; height: 300px; width: 100%; }
 
-        /* TABLAS Y TARJETAS INFERIORES */
+        /* TABLAS Y TARJETAS */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 25px; }
         .audi-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-light); display: flex; flex-direction: column; }
         .audi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
@@ -191,8 +190,8 @@
 
     <div class="tabs-container" id="tabs-bar" style="display:none;">
         <button class="tab-btn active-sql" id="btn-tab-sql" onclick="mostrarTab('sql')">📊 SQL</button>
-        <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">📝 SHEETS</button>
-        <button class="tab-btn" id="btn-tab-forms" onclick="mostrarTab('forms')">🗃️ AUDITORÍAS REGIONAL</button>
+        <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">📝 AUDITORÍAS REGIONAL</button>
+        <button class="tab-btn" id="btn-tab-forms" onclick="mostrarTab('forms')">🗃️ HISTÓRICO (FORMS)</button>
     </div>
 
     <!-- SECCIÓN 1: SQL -->
@@ -232,7 +231,7 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 2: SHEETS -->
+    <!-- SECCIÓN 2: AUDITORÍAS REGIONAL (SHEETS) -->
     <div class="panel" id="panel-sheets">
         <div class="filters-wrapper">
             <div class="filters-grid">
@@ -264,7 +263,7 @@
         <div class="cards-grid" id="contenido-sheets-cards"></div>
     </div>
 
-    <!-- SECCIÓN 3: FORMS / REGIONAL -->
+    <!-- SECCIÓN 3: HISTÓRICO (FORMS) -->
     <div class="panel" id="panel-forms">
         <div class="filters-wrapper">
             <div class="filters-grid">
@@ -288,9 +287,9 @@
         </div>
 
         <div class="charts-3-col">
-            <div class="chart-card"><div class="chart-title">HALLAZGOS POR TIPO</div><div class="canvas-container"><canvas id="chartTipoForms"></canvas></div></div>
-            <div class="chart-card"><div class="chart-title">HALLAZGOS POR AUDITOR</div><div class="canvas-container"><canvas id="chartAuditorForms"></canvas></div></div>
-            <div class="chart-card"><div class="chart-title">HALLAZGOS POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLForms"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HISTÓRICO POR TIPO</div><div class="canvas-container"><canvas id="chartTipoForms"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HISTÓRICO POR AUDITOR</div><div class="canvas-container"><canvas id="chartAuditorForms"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HISTÓRICO POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLForms"></canvas></div></div>
         </div>
 
         <div class="cards-grid" id="contenido-forms-cards"></div>
@@ -303,7 +302,6 @@
     let chartTipoS = null, chartAuditorS = null, chartTLS = null;
     let chartTipoF = null, chartAuditorF = null, chartTLF = null;
     
-    // Paleta de colores más vibrante estilo dashboard
     const coloresPaleta = ['#ef4444', '#facc15', '#f97316', '#3b82f6', '#10b981', '#a855f7', '#ec4899', '#14b8a6', '#6366f1', '#84cc16', '#f43f5e', '#0ea5e9'];
 
     Chart.defaults.font.family = "'Montserrat', sans-serif";
@@ -316,11 +314,14 @@
         if (p.length === 3) return p[0].length === 4 ? new Date(p[0], p[1]-1, p[2]) : new Date(p[2], p[1]-1, p[0]);
         let d = new Date(str); return isNaN(d.getTime()) ? null : d;
     }
+    
+    // Normaliza el JSON que envía n8n (extrae del array 'json' si es necesario)
     function normalizarN8N(data) {
         if (!data) return [];
         let arr = Array.isArray(data) ? data : (data.data || data.results || Object.values(data) || []);
         return arr.map(d => d.json ? d.json : d);
     }
+    
     function buscarValor(obj, keysArray) {
         for(let k of keysArray) {
             const foundKey = Object.keys(obj).find(ok => ok.toLowerCase().trim() === k.toLowerCase().trim());
@@ -329,7 +330,8 @@
         return null;
     }
 
-    function limpiarDatosSheets(rawArray) {
+    // Adaptado exclusivamente para la pestaña Auditorías Regional (171 items)
+    function limpiarDatosRegional(rawArray) {
         let limpios = [];
         rawArray.forEach(row => {
             if (row.COL_7 === "Fecha de detección" || row["Fecha de detección"] === "Fecha de detección") return;
@@ -361,15 +363,18 @@
         return limpios;
     }
 
+    // ==========================================
+    // CARGA DE LOS ARCHIVOS DEL WORKFLOW N8N
+    // ==========================================
     Promise.all([
-        fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
-        fetch('hallazgos.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
-        fetch('auditorias.json?t=' + Date.now()).then(r => r.json()).catch(() => []) 
+        fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),    // Nodo SQL
+        fetch('hallazgos.json?t=' + Date.now()).then(r => r.json()).catch(() => []),   // Nodo Sheets Inferior (Auditoria_LP_Hallazgos)
+        fetch('auditorias.json?t=' + Date.now()).then(r => r.json()).catch(() => [])   // Nodo Sheets Superior (Reporte por auditorias LP)
     ]).then(([dSQL, dSheets, dForms]) => {
         try {
             datosSQL = normalizarN8N(dSQL);
-            datosSheets = limpiarDatosSheets(normalizarN8N(dSheets)); 
-            datosForms = normalizarN8N(dForms); // Opcionalmente usar limpiarDatosSheets si comparten formato
+            datosSheets = limpiarDatosRegional(normalizarN8N(dSheets)); 
+            datosForms = normalizarN8N(dForms); // Se deja crudo y se parsea en filtrarForms()
 
             document.getElementById('status').style.display = 'none';
             document.getElementById('tabs-bar').style.display = 'flex';
@@ -381,7 +386,7 @@
             filtrarSQL();
             filtrarSheets();
             filtrarForms();
-        } catch (e) { document.getElementById('status').innerText = 'Error interno: ' + e.message; }
+        } catch (e) { document.getElementById('status').innerText = 'Error al procesar datos del workflow: ' + e.message; }
     });
 
     function mostrarTab(tab) {
@@ -405,7 +410,7 @@
     }
 
     // ==========================================
-    // 1. SQL
+    // LÓGICA SQL
     // ==========================================
     function poblarFiltrosSQL(datos) {
         const setIS = new Set();
@@ -453,7 +458,7 @@
     }
 
     // ==========================================
-    // 2. SHEETS
+    // LÓGICA AUDITORÍAS REGIONAL (SHEETS)
     // ==========================================
     const KEYS_FECHA_S = ['Fecha de detección']; 
     const KEYS_AUDI_S = ['Auditor LP', 'Auditor']; 
@@ -534,7 +539,7 @@
     }
 
     // ==========================================
-    // 3. REGIONAL / FORMS
+    // LÓGICA HISTÓRICO (REPORTE FORMS)
     // ==========================================
     function poblarFiltrosForms(datos) {
         const proc = new Set(), tl = new Set();

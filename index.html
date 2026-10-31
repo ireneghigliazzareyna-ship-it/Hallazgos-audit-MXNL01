@@ -99,15 +99,20 @@
         input, select { padding: 12px; border: 1px solid var(--border-light); border-radius: 8px; outline: none; font-size: 0.95rem; font-family: 'Montserrat', sans-serif; background-color: #f8fafc; }
 
         /* SINGLE BIG KPI */
-        .kpi-wrapper { margin-bottom: 25px; }
+        .kpi-wrapper { margin-bottom: 25px; display: flex; gap: 20px; }
         .kpi-single { 
+            flex: 1;
             background: var(--card-bg); 
             border-radius: 16px; 
             padding: 30px; 
             text-align: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+        }
+        .kpi-single.center-only {
             max-width: 800px;
             margin: 0 auto;
+            flex: none;
+            width: 100%;
         }
         .kpi-title { font-size: 1rem; color: var(--text-dark); font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
         .kpi-number { font-size: 3.5rem; font-weight: 900; }
@@ -180,12 +185,12 @@
             </div>
         </div>
 
-        <div class="kpi-wrapper" style="display: flex; gap: 20px;">
-            <div class="kpi-single" style="flex: 1; max-width:none;">
+        <div class="kpi-wrapper">
+            <div class="kpi-single">
                 <div class="kpi-title">TOTAL INBOUNDS AFECTADOS</div>
                 <div class="kpi-number text-red" id="kpi-inbounds">0</div>
             </div>
-            <div class="kpi-single" style="flex: 1; max-width:none;">
+            <div class="kpi-single">
                 <div class="kpi-title">IMPACTO TOTAL (USD)</div>
                 <div class="kpi-number text-red" id="kpi-usd">$0.00</div>
             </div>
@@ -218,8 +223,8 @@
             </div>
         </div>
 
-        <div class="kpi-wrapper">
-            <div class="kpi-single">
+        <div class="kpi-wrapper" style="justify-content: center;">
+            <div class="kpi-single center-only">
                 <div class="kpi-title">TOTAL REGISTROS (ASIGNADOS)</div>
                 <div class="kpi-number text-orange" id="kpi-auditorias-total">0</div>
             </div>
@@ -231,7 +236,7 @@
             <div class="chart-card"><div class="chart-title">HALLAZGOS POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLSheets"></canvas></div></div>
         </div>
 
-        <!-- NUEVA SECCIÓN DE CIERRES PENDIENTES -->
+        <!-- INDICADOR DE CIERRES PENDIENTES -->
         <div class="cierres-section">
             <div class="cierres-title">🚨 INDICADOR: TEAM LEADERS CON CIERRES PENDIENTES</div>
             <div id="cierres-sheets-list"></div>
@@ -252,8 +257,8 @@
             </div>
         </div>
 
-        <div class="kpi-wrapper">
-            <div class="kpi-single">
+        <div class="kpi-wrapper" style="justify-content: center;">
+            <div class="kpi-single center-only">
                 <div class="kpi-title">TOTAL REGISTROS HISTÓRICOS</div>
                 <div class="kpi-number text-orange" id="kpi-forms-total">0</div>
             </div>
@@ -265,7 +270,7 @@
             <div class="chart-card"><div class="chart-title">HISTÓRICO POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLForms"></canvas></div></div>
         </div>
 
-        <!-- NUEVA SECCIÓN DE CIERRES PENDIENTES -->
+        <!-- INDICADOR DE CIERRES PENDIENTES -->
         <div class="cierres-section">
             <div class="cierres-title">🚨 INDICADOR: TEAM LEADERS CON CIERRES PENDIENTES</div>
             <div id="cierres-forms-list"></div>
@@ -303,40 +308,45 @@
     function buscarValor(obj, keysArray) {
         for(let k of keysArray) {
             const foundKey = Object.keys(obj).find(ok => ok.toLowerCase().trim() === k.toLowerCase().trim());
-            if(foundKey && obj[foundKey]) return obj[foundKey];
+            if(foundKey && obj[foundKey] && String(obj[foundKey]).trim() !== '') return obj[foundKey];
         }
         return null;
     }
 
-    function limpiarDatosRegional(rawArray) {
-        let limpios = [];
-        rawArray.forEach(row => {
-            if (row.COL_7 === "Fecha de detección" || row["Fecha de detección"] === "Fecha de detección") return;
-            let nuevoObj = {
-                "Fecha de detección": row["Fecha de detección"] || row.COL_7 || row.col_7,
-                "Auditor LP": row["Auditor LP"] || row["Auditor"] || row.COL_8 || row.col_8,
-                "Proceso Madre": row["Proceso Madre"] || row.COL_9 || row.col_9,
-                "Proceso": row["Proceso"] || row.COL_10 || row.col_10,
-                "Auditoria": row["Auditoria"] || row.COL_11 || row.col_11,
-                "Fecha de Incidencia": row["Fecha de Incidencia"] || row.COL_12 || row.col_12,
-                "Tipo de Hallazgo": row["Tipo de Hallazgo"] || row.COL_13 || row.col_13,
-                "MELI": row["MELI"] || row["MELICAM"] || row.COL_14 || row.col_14 || row["Subject e-mail"] || row.COL_6 || row.col_6, 
-                "Responsable": row["Responsable"] || row.COL_18 || row.col_18,
-                "Turno": row["TURNO"] || row["Turno"] || row.COL_19 || row.col_19,
-                "Team Leader": row["Team Leader"] || row.COL_20 || row.col_20,
-                "Supervisor": row["Supervisor"] || row.COL_21 || row.col_21,
-                "Cierre": row["Cierre"] || row["Matriz de Disciplina"] || row.COL_22 || row.col_22 // Usado para estatus de cierre
-            };
-            for(let k in row) {
-                if(!k.toLowerCase().startsWith('col_') && !nuevoObj[k] && k !== 'json') {
-                    nuevoObj[k] = row[k];
-                }
-            }
-            if (nuevoObj["Auditor LP"] || nuevoObj["Tipo de Hallazgo"] || nuevoObj["Proceso Madre"]) {
-                limpios.push(nuevoObj);
-            }
+    // LISTA EXPANDIDA DE LLAVES PARA ATRAPAR EL TEAM LEADER
+    const KEYS_FECHA_S = ['Fecha de detección', 'Marca temporal', 'Fecha Auditoria']; 
+    const KEYS_AUDI_S = ['Auditor LP', 'Auditor', 'Auditor 1']; 
+    const KEYS_PROC_S = ['Proceso Madre', 'Proceso', 'TIPO DE AUDITORIA']; 
+    const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria', 'Tipo de Incidencia']; 
+    const KEYS_MELI_S = ['MELI', 'Subject e-mail', 'Folio', 'MELICAM', 'ID'];
+    const KEYS_TL_S = ['Team Leader', 'Líder', 'COL_20', 'col_20', 'TEAM LEADER'];
+    const KEYS_CIERRE_S = ['Cierre', 'Matriz de Disciplina', 'Estatus', 'COL_22', 'col_22', 'COL_13', 'col_13'];
+
+    // UTILIDAD: RENDERIZAR BARRAS DE CIERRES PENDIENTES
+    function renderCierresPendientes(cierresDict, containerId) {
+        const sortedTLs = Object.keys(cierresDict).sort((a, b) => cierresDict[b].length - cierresDict[a].length);
+        if(sortedTLs.length === 0) {
+            document.getElementById(containerId).innerHTML = "<p style='text-align:center; color:var(--text-muted); font-weight:700;'>No hay cierres pendientes detectados.</p>";
+            return;
+        }
+
+        const maxPendientes = cierresDict[sortedTLs[0]].length;
+        let html = '';
+        sortedTLs.forEach(tl => {
+            const folios = cierresDict[tl];
+            const pct = (folios.length / maxPendientes) * 100;
+            html += `
+                <div class="tl-row">
+                    <div class="tl-header">
+                        <span>${tl}</span>
+                        <span class="tl-count">${folios.length} Pendiente(s)</span>
+                    </div>
+                    <div class="tl-bar-bg"><div class="tl-bar-fill" style="width: ${pct}%"></div></div>
+                    <div class="tl-folios">Folios por cerrar: ${folios.join(', ')}</div>
+                </div>
+            `;
         });
-        return limpios;
+        document.getElementById(containerId).innerHTML = html;
     }
 
     Promise.all([
@@ -346,7 +356,7 @@
     ]).then(([dSQL, dSheets, dForms]) => {
         try {
             datosSQL = normalizarN8N(dSQL);
-            datosSheets = limpiarDatosRegional(normalizarN8N(dSheets)); 
+            datosSheets = normalizarN8N(dSheets); 
             datosForms = normalizarN8N(dForms); 
 
             document.getElementById('status').style.display = 'none';
@@ -429,44 +439,8 @@
     }
 
     // ==========================================
-    // UTILIDAD: RENDERIZAR CIERRES PENDIENTES
-    // ==========================================
-    function renderCierresPendientes(cierresDict, containerId) {
-        const sortedTLs = Object.keys(cierresDict).sort((a, b) => cierresDict[b].length - cierresDict[a].length);
-        if(sortedTLs.length === 0) {
-            document.getElementById(containerId).innerHTML = "<p style='text-align:center; color:var(--text-muted); font-weight:700;'>No hay cierres pendientes detectados.</p>";
-            return;
-        }
-
-        const maxPendientes = cierresDict[sortedTLs[0]].length;
-        let html = '';
-        sortedTLs.forEach(tl => {
-            const folios = cierresDict[tl];
-            const pct = (folios.length / maxPendientes) * 100;
-            html += `
-                <div class="tl-row">
-                    <div class="tl-header">
-                        <span>${tl}</span>
-                        <span class="tl-count">${folios.length} Pendiente(s)</span>
-                    </div>
-                    <div class="tl-bar-bg"><div class="tl-bar-fill" style="width: ${pct}%"></div></div>
-                    <div class="tl-folios">Folios por cerrar: ${folios.join(', ')}</div>
-                </div>
-            `;
-        });
-        document.getElementById(containerId).innerHTML = html;
-    }
-
-    // ==========================================
     // LÓGICA AUDITORÍAS REGIONAL (SHEETS)
     // ==========================================
-    const KEYS_FECHA_S = ['Fecha de detección']; 
-    const KEYS_AUDI_S = ['Auditor LP', 'Auditor']; 
-    const KEYS_PROC_S = ['Proceso', 'Proceso Madre']; 
-    const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria']; 
-    const KEYS_MELI_S = ['MELI', 'Subject e-mail', 'Folio'];
-    const KEYS_TL_S = ['Team Leader', 'Líder'];
-
     function poblarFiltrosSheets(datos) {
         const proc = new Set(), tl = new Set();
         datos.forEach(d => { 
@@ -495,18 +469,23 @@
         res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_S))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_S))||0));
         const countTipo = {}, countAuditor = {}, countTL = {}, cierresPendientes = {}; 
         let htmlCards = '';
-        const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_PROC_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, 'Cierre'];
+        
+        // Excluir llaves sistémicas de las tarjetas
+        const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, ...KEYS_CIERRE_S, 'json', 'row_number'];
 
         res.forEach(d => {
-            const meli = buscarValor(d, KEYS_MELI_S) || 'Sin Folio', tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar', fCrea = buscarValor(d, KEYS_FECHA_S) || 'Sin fecha', a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar', tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
+            const meli = buscarValor(d, KEYS_MELI_S) || 'Sin Folio';
+            const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
+            const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
+            const tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
             
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
 
-            // Lógica Cierres Pendientes
-            let statusCierre = buscarValor(d, ['Cierre', 'Matriz de Disciplina', 'Estatus']);
-            let isPending = !statusCierre || String(statusCierre).trim() === '' || String(statusCierre).toLowerCase().includes('pendiente') || String(statusCierre).trim() === '-';
+            // Lógica de Cierres
+            let statusCierre = buscarValor(d, KEYS_CIERRE_S);
+            let isPending = !statusCierre || String(statusCierre).trim() === '' || String(statusCierre).toLowerCase().includes('pendiente') || String(statusCierre).toLowerCase() === 'feedback' || String(statusCierre).trim() === '-';
             if (isPending && tl && tl !== 'Sin asignar') {
                 if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
                 cierresPendientes[tl].push(meli);
@@ -515,13 +494,15 @@
             let htmlDyn = '';
             for (let key in d) {
                 let val = d[key];
-                if (val && String(val).trim() !== '' && String(val).trim() !== '-' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
+                if (val && String(val).trim() !== '' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
                     if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
-                    htmlDyn += `<div class="dy-item"><span class="dy-label">${key}</span><span class="dy-value">${val}</span></div>`;
+                    
+                    // Limpiar nombres de columnas raras de n8n
+                    let displayKey = key.startsWith('COL_') || key.startsWith('col_') ? 'Dato Extra' : key;
+                    htmlDyn += `<div class="dy-item"><span class="dy-label">${displayKey}</span><span class="dy-value">${val}</span></div>`;
                 }
             }
 
-            // Tarjeta estilo Grid
             htmlCards += `
             <div class="audi-card">
                 <div class="audi-header">
@@ -539,7 +520,7 @@
         renderCierresPendientes(cierresPendientes, 'cierres-sheets-list');
 
         if (chartTipoS) chartTipoS.destroy();
-        chartTipoS = new Chart(document.getElementById('chartTipoSheets').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }});
+        chartTipoS = new Chart(document.getElementById('chartTipoSheets').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '50%' }});
 
         const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
         if (chartAuditorS) chartAuditorS.destroy();
@@ -556,7 +537,7 @@
     function poblarFiltrosForms(datos) {
         const proc = new Set(), tl = new Set();
         datos.forEach(d => { 
-            let p = buscarValor(d, KEYS_PROC_S) || buscarValor(d, ['TIPO DE AUDITORIA']); if(p) proc.add(p); 
+            let p = buscarValor(d, KEYS_PROC_S); if(p) proc.add(p); 
             let t = buscarValor(d, KEYS_TL_S); if(t) tl.add(t); 
         });
         Array.from(proc).sort().forEach(x => document.getElementById('filter-forms-proceso').innerHTML += `<option value="${x}">${x}</option>`);
@@ -568,7 +549,7 @@
         const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosForms.filter(d => {
-            const fCrea = buscarValor(d, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']) || '', proc = buscarValor(d, KEYS_PROC_S) || buscarValor(d, ['TIPO DE AUDITORIA']) || '', tl = buscarValor(d, KEYS_TL_S) || '', meli = buscarValor(d, ['MELICAM', 'Meli', 'ID', 'Subject e-mail']) || '';
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', tl = buscarValor(d, KEYS_TL_S) || '', meli = buscarValor(d, KEYS_MELI_S) || '';
             let dt = parseFecha(fCrea);
             if (dt && dIni && dt < dIni) return false;
             if (pSel && proc !== pSel) return false;
@@ -578,20 +559,23 @@
             return true;
         });
 
-        res.sort((a, b) => (parseFecha(buscarValor(b, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']))||0) - (parseFecha(buscarValor(a, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']))||0));
+        res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_S))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_S))||0));
         const countTipo = {}, countAuditor = {}, countTL = {}, cierresPendientes = {}; 
         let htmlCards = '';
-        const omitirKeys = ['Marca temporal', 'Fecha Auditoria', 'Auditor 1', 'Auditor', 'Auditor LP', 'TIPO DE AUDITORIA', 'MELICAM', 'Meli', 'ID', 'Subject e-mail', 'Cierre'];
+        const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, ...KEYS_CIERRE_S, 'json', 'row_number'];
 
         res.forEach(d => {
-            const meli = buscarValor(d, ['MELICAM', 'Meli', 'ID', 'Subject e-mail']) || 'Sin Folio', tipo = buscarValor(d, ['TIPO DE AUDITORIA', 'Tipo de Incidencia', 'Tipo de Hallazgo']) || 'Sin Clasificar', fCrea = buscarValor(d, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']) || 'Sin fecha', a1 = buscarValor(d, ['Auditor 1', 'Auditor', 'Auditor LP']) || 'Sin asignar', tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
+            const meli = buscarValor(d, KEYS_MELI_S) || 'Sin Folio';
+            const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
+            const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
+            const tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
             
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
 
-            let statusCierre = buscarValor(d, ['Cierre', 'Matriz de Disciplina', 'Estatus']);
-            let isPending = !statusCierre || String(statusCierre).trim() === '' || String(statusCierre).toLowerCase().includes('pendiente') || String(statusCierre).trim() === '-';
+            let statusCierre = buscarValor(d, KEYS_CIERRE_S);
+            let isPending = !statusCierre || String(statusCierre).trim() === '' || String(statusCierre).toLowerCase().includes('pendiente') || String(statusCierre).toLowerCase() === 'feedback' || String(statusCierre).trim() === '-';
             if (isPending && tl && tl !== 'Sin asignar') {
                 if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
                 cierresPendientes[tl].push(meli);
@@ -600,9 +584,10 @@
             let htmlDyn = '';
             for (let key in d) {
                 let val = d[key];
-                if (val && String(val).trim() !== '' && String(val).trim() !== '-' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
+                if (val && String(val).trim() !== '' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
                     if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
-                    htmlDyn += `<div class="dy-item"><span class="dy-label">${key}</span><span class="dy-value">${val}</span></div>`;
+                    let displayKey = key.startsWith('COL_') || key.startsWith('col_') ? 'Dato Extra' : key;
+                    htmlDyn += `<div class="dy-item"><span class="dy-label">${displayKey}</span><span class="dy-value">${val}</span></div>`;
                 }
             }
 

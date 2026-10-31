@@ -435,13 +435,7 @@
         const res = datosSheets.filter(d => {
             if (d.COL_7 === "Fecha de detección" || d["Fecha de detección"] === "Fecha de detección") return false;
             
-            let tl = buscarValor(d, KEYS_TL_S);
-            let auditor = buscarValor(d, KEYS_AUDI_S);
-            
-            // EXCLUIR REGISTROS SIN TEAM LEADER O SIN AUDITOR
-            if (!esValido(tl) || !esValido(auditor)) return false;
-
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '';
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '', tl = buscarValor(d, KEYS_TL_S) || '';
             let meliLimpio = extraerSoloFolio(meliBruto);
 
             let dt = parseFecha(fCrea);
@@ -462,18 +456,19 @@
             const meliBruto = buscarValor(d, KEYS_MELI_S);
             const meli = extraerSoloFolio(meliBruto);
             const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
-            const a1 = buscarValor(d, KEYS_AUDI_S);
-            const tl = buscarValor(d, KEYS_TL_S);
+            const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
+            let tl = buscarValor(d, KEYS_TL_S); if (!tl || String(tl).trim() === '') tl = 'Sin asignar';
             
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
 
-            // ESTRICTO: Solo si Columna W dice "Abierto"
             let statusCierre = buscarValor(d, KEYS_CIERRE_S);
             if (statusCierre && String(statusCierre).trim().toLowerCase() === 'abierto') {
-                if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
-                cierresPendientes[tl].push(meli);
+                if(esValido(tl)) {
+                    if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
+                    cierresPendientes[tl].push(meli);
+                }
             }
 
             let htmlDyn = '';
@@ -508,14 +503,15 @@
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }
         });
 
-        const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
+        // FILTRO DE GRÁFICAS: OCULTAR "SIN ASIGNAR"
+        const as = Object.keys(countAuditor).filter(esValido).sort((a,b) => countAuditor[b] - countAuditor[a]);
         if (chartAuditorS) chartAuditorS.destroy();
         chartAuditorS = new Chart(document.getElementById('chartAuditorSheets').getContext('2d'), { 
             type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, 
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }
         });
 
-        const tls = Object.keys(countTL).sort((a,b) => countTL[b] - countTL[a]);
+        const tls = Object.keys(countTL).filter(esValido).sort((a,b) => countTL[b] - countTL[a]);
         if (chartTLS) chartTLS.destroy();
         chartTLS = new Chart(document.getElementById('chartTLSheets').getContext('2d'), { 
             type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, 
@@ -541,13 +537,7 @@
         const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosForms.filter(d => {
-            let tl = buscarValor(d, KEYS_TL_S);
-            let auditor = buscarValor(d, KEYS_AUDI_S);
-            
-            // EXCLUIR REGISTROS SIN TEAM LEADER O SIN AUDITOR
-            if (!esValido(tl) || !esValido(auditor)) return false;
-
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '';
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '', tl = buscarValor(d, KEYS_TL_S) || '';
             let meliLimpio = extraerSoloFolio(meliBruto);
 
             let dt = parseFecha(fCrea);
@@ -567,8 +557,8 @@
             const meliBruto = buscarValor(d, KEYS_MELI_S);
             const meli = extraerSoloFolio(meliBruto);
             const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
-            const a1 = buscarValor(d, KEYS_AUDI_S);
-            const tl = buscarValor(d, KEYS_TL_S);
+            const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
+            let tl = buscarValor(d, KEYS_TL_S); if (!tl || String(tl).trim() === '') tl = 'Sin asignar';
             
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
@@ -576,8 +566,10 @@
 
             let statusCierre = buscarValor(d, KEYS_CIERRE_S);
             if (statusCierre && String(statusCierre).trim().toLowerCase() === 'abierto') {
-                if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
-                cierresPendientes[tl].push(meli);
+                if(esValido(tl)) {
+                    if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
+                    cierresPendientes[tl].push(meli);
+                }
             }
 
             let htmlDyn = '';
@@ -609,11 +601,12 @@
         if (chartTipoF) chartTipoF.destroy();
         chartTipoF = new Chart(document.getElementById('chartTipoForms').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }});
 
-        const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
+        // FILTRO DE GRÁFICAS: OCULTAR "SIN ASIGNAR"
+        const as = Object.keys(countAuditor).filter(esValido).sort((a,b) => countAuditor[b] - countAuditor[a]);
         if (chartAuditorF) chartAuditorF.destroy();
         chartAuditorF = new Chart(document.getElementById('chartAuditorForms').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }});
 
-        const tls = Object.keys(countTL).sort((a,b) => countTL[b] - countTL[a]);
+        const tls = Object.keys(countTL).filter(esValido).sort((a,b) => countTL[b] - countTL[a]);
         if (chartTLF) chartTLF.destroy();
         chartTLF = new Chart(document.getElementById('chartTLForms').getContext('2d'), { type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }});
     }

@@ -148,7 +148,7 @@
         <div class="filters-grid">
             <div class="filter-group"><label>Rango de Fechas:</label><div style="display:flex; gap:10px;"><input type="date" id="filter-fecha-inicio" onchange="filtrarSheets()" style="width:50%;"><input type="date" id="filter-fecha-fin" onchange="filtrarSheets()" style="width:50%;"></div></div>
             <div class="filter-group"><label>Auditor:</label><select id="filter-auditor" onchange="filtrarSheets()"><option value="">Todos los auditores</option></select></div>
-            <div class="filter-group"><label>Tipo de Auditoría (Columna J):</label><select id="filter-incidencia" onchange="filtrarSheets()"><option value="">Todos los tipos</option></select></div>
+            <div class="filter-group"><label>Tipo de Auditoría:</label><select id="filter-incidencia" onchange="filtrarSheets()"><option value="">Todos los tipos</option></select></div>
             <div class="filter-group"><label>Buscar ID Meli / Texto:</label><input type="text" id="search-sheets" placeholder="Ej. MELI123..." oninput="filtrarSheets()"></div>
         </div>
 
@@ -229,27 +229,43 @@
         return null;
     }
 
-    // Traductor Mágico para Sheets Nuevo
+    // Adaptado a las nuevas columnas de la imagen:
     function limpiarDatosSheets(rawArray) {
         let limpios = [];
         rawArray.forEach(row => {
-            if (row.COL_3 === "Auditor" || row.COL_2 === "Fecha de detección") return;
+            // Evitar procesar encabezados
+            if (row.COL_7 === "Fecha de detección" || row["Fecha de detección"] === "Fecha de detección") return;
+            
+            // Busca por llave de encabezado (si n8n lo mandó así) o por índice de columna (COL_X)
             let nuevoObj = {
-                "Fecha de detección": row.COL_2 || row.col_2 || row["Fecha de detección"],
-                "Auditor": row.COL_3 || row.col_3 || row["Auditor"],
-                "Proceso": row.COL_4 || row.col_4 || row["Proceso"],
-                "Tipo de Hallazgo": row.COL_5 || row.col_5 || row["Tipo de Hallazgo"],
-                "Fecha de Incidencia": row.COL_6 || row.col_6 || row["Fecha de Incidencia"],
-                "Responsable": row.COL_7 || row.col_7 || row["Responsable"],
-                "MELI": row.COL_8 || row.col_8 || row["MELI"],
-                "Team Leader": row.COL_9 || row.col_9 || row["Team Leader"],
-                "Detalle del Hallazgo": row.COL_10 || row.col_10 || row["Detalle del Hallazgo"],
-                "MXN": row.COL_11 || row.col_11 || row["MXN"],
-                "Matriz de Disciplina": row.COL_12 || row.col_12 || row["Matriz de Disciplina"],
-                "Cierre": row.COL_13 || row.col_13 || row["Cierre"],
-                "Observaciones": row.COL_14 || row.col_14 || row["Observaciones"]
+                "Fecha de detección": row["Fecha de detección"] || row.COL_7 || row.col_7,
+                "Auditor LP": row["Auditor LP"] || row["Auditor"] || row.COL_8 || row.col_8,
+                "Proceso Madre": row["Proceso Madre"] || row.COL_9 || row.col_9,
+                "Proceso": row["Proceso"] || row.COL_10 || row.col_10,
+                "Auditoria": row["Auditoria"] || row.COL_11 || row.col_11,
+                "Fecha de Incidencia": row["Fecha de Incidencia"] || row.COL_12 || row.col_12,
+                "Tipo de Hallazgo": row["Tipo de Hallazgo"] || row.COL_13 || row.col_13,
+                // Asumiendo que Meli puede venir en columnas intermedias o por nombre
+                "MELI": row["MELI"] || row["MELICAM"] || row.COL_14 || row.col_14 || row["Subject e-mail"] || row.COL_6 || row.col_6, 
+                "MXN": row["MXN"] || row.COL_17 || row.col_17,
+                "Responsable": row["Responsable"] || row.COL_18 || row.col_18,
+                "Turno": row["TURNO"] || row["Turno"] || row.COL_19 || row.col_19,
+                "Team Leader": row["Team Leader"] || row.COL_20 || row.col_20,
+                "Supervisor": row["Supervisor"] || row.COL_21 || row.col_21,
+                "Matriz de Disciplina": row["Matriz de Disciplina"] || row.COL_22 || row.col_22
             };
-            if (nuevoObj["Auditor"] || nuevoObj["MELI"] || nuevoObj["Tipo de Hallazgo"]) limpios.push(nuevoObj);
+
+            // Conservar el resto de las llaves dinámicas para no perder info extra (evidencias, observaciones)
+            for(let k in row) {
+                if(!k.toLowerCase().startsWith('col_') && !nuevoObj[k] && k !== 'json') {
+                    nuevoObj[k] = row[k];
+                }
+            }
+
+            // Validar que la fila tenga datos reales
+            if (nuevoObj["Auditor LP"] || nuevoObj["Tipo de Hallazgo"] || nuevoObj["Proceso Madre"]) {
+                limpios.push(nuevoObj);
+            }
         });
         return limpios;
     }
@@ -347,7 +363,12 @@
     // ==========================================
     // 2. HALLAZGOS SHEETS (AMARILLO/VERDE)
     // ==========================================
-    const KEYS_FECHA_S = ['Fecha de detección']; const KEYS_AUDI_S = ['Auditor']; const KEYS_PROC_S = ['Proceso']; const KEYS_TIPO_S = ['Tipo de Hallazgo']; const KEYS_MELI_S = ['MELI'];
+    // Actualizado con los nombres de la nueva tabla
+    const KEYS_FECHA_S = ['Fecha de detección']; 
+    const KEYS_AUDI_S = ['Auditor LP', 'Auditor']; 
+    const KEYS_PROC_S = ['Proceso', 'Proceso Madre']; 
+    const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria']; 
+    const KEYS_MELI_S = ['MELI', 'Subject e-mail'];
 
     function poblarFiltrosSheets(datos) {
         const auditores = new Set(), tipos = new Set();
@@ -444,7 +465,7 @@
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             
             for(let k in d) {
-                if(k.toLowerCase().includes('monto') || k.toLowerCase().includes('precio') || k.toLowerCase().includes('total')) {
+                if(k.toLowerCase().includes('monto') || k.toLowerCase().includes('precio') || k.toLowerCase().includes('total') || k.toLowerCase().includes('mxn')) {
                     totMonto += (parseFloat(String(d[k]).replace(/[^0-9.-]+/g,"")) || 0);
                 }
             }

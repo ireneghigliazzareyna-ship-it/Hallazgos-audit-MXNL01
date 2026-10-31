@@ -83,7 +83,7 @@
         .text-orange { color: #ea580c; }
         .text-red { color: #dc2626; }
 
-        /* GRÁFICOS (Renderizados en alta resolución) */
+        /* GRÁFICOS */
         .charts-3-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 25px; }
         .chart-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .chart-title { text-align: center; font-weight: 900; color: var(--text-dark); text-transform: uppercase; margin-bottom: 20px; font-size: 0.95rem; }
@@ -97,7 +97,7 @@
         .tl-count { color: var(--red-alert); font-size: 0.85rem; }
         .tl-bar-bg { background: var(--red-bg); height: 12px; border-radius: 6px; width: 100%; overflow: hidden; margin-bottom: 10px; }
         .tl-bar-fill { background: var(--red-alert); height: 100%; border-radius: 6px; transition: width 0.5s ease; }
-        .tl-folios { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; line-height: 1.5;}
+        .tl-folios { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; line-height: 1.5;}
 
         /* TARJETAS INFERIORES */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 25px; }
@@ -198,7 +198,6 @@
             <div class="chart-card"><div class="chart-title">HALLAZGOS POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLSheets"></canvas></div></div>
         </div>
 
-        <!-- INDICADOR DE CIERRES PENDIENTES -->
         <div class="cierres-section">
             <div class="cierres-title">🚨 INDICADOR: TEAM LEADERS CON CIERRES PENDIENTES</div>
             <div id="cierres-sheets-list"></div>
@@ -232,21 +231,23 @@
             <div class="chart-card"><div class="chart-title">HISTÓRICO POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLForms"></canvas></div></div>
         </div>
 
+        <div class="cierres-section">
+            <div class="cierres-title">🚨 INDICADOR: TEAM LEADERS CON CIERRES PENDIENTES</div>
+            <div id="cierres-forms-list"></div>
+        </div>
+
         <div class="cards-grid" id="contenido-forms-cards"></div>
     </div>
 </div>
 
 <script>
     let datosSQL = [], datosSheets = [], datosForms = [];
-    let chartSQLInstancia = null;
-    let chartTipoS = null, chartAuditorS = null, chartTLS = null;
-    let chartTipoF = null, chartAuditorF = null, chartTLF = null;
+    let chartSQLInstancia = null, chartTipoS = null, chartAuditorS = null, chartTLS = null, chartTipoF = null, chartAuditorF = null, chartTLF = null;
     
     const coloresPaleta = ['#ef4444', '#facc15', '#f97316', '#3b82f6', '#10b981', '#a855f7', '#ec4899', '#14b8a6', '#6366f1', '#84cc16', '#f43f5e', '#0ea5e9'];
 
     Chart.defaults.font.family = "'Montserrat', sans-serif";
     Chart.defaults.font.weight = "700";
-    // Forzamos alta resolución en dispositivos
     Chart.defaults.devicePixelRatio = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
 
     function formatearDinero(num) { return '$' + (parseFloat(num) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -271,27 +272,33 @@
         return null;
     }
 
-    // EXTRACCIÓN DE FOLIO LIMPIO (Ej. "CDP0109")
-    function limpiarFolio(texto) {
+    function extraerSoloFolio(texto) {
         if (!texto) return 'Sin Folio';
-        let match = String(texto).match(/CDP\d+/i);
-        return match ? match[0].toUpperCase() : String(texto).split(' -')[0].trim();
+        let str = String(texto);
+        let match = str.match(/CDP\d+/i);
+        if (match) return match[0].toUpperCase();
+        
+        let splitDash = str.split(' -')[0].trim();
+        if (splitDash.length > 0 && splitDash.length <= 15) return splitDash.toUpperCase();
+        
+        return str.substring(0, 15).toUpperCase();
     }
 
-    // LLAVES ESPECÍFICAS DE COLUMNAS
+    function esValido(valor) {
+        if (!valor) return false;
+        const valStr = String(valor).trim().toLowerCase();
+        if (valStr === '' || valStr === 'na' || valStr === 'n/a' || valStr === 'sin asignar') return false;
+        return true;
+    }
+
     const KEYS_FECHA_S = ['Fecha de detección', 'Marca temporal', 'Fecha Auditoria']; 
     const KEYS_AUDI_S = ['Auditor LP', 'Auditor', 'Auditor 1', 'COL_8', 'col_8']; 
     const KEYS_PROC_S = ['Proceso Madre', 'Proceso', 'TIPO DE AUDITORIA', 'COL_9', 'col_9']; 
     const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria', 'Tipo de Incidencia', 'COL_13', 'col_13']; 
     const KEYS_MELI_S = ['Subject e-mail', 'MELI', 'Folio', 'MELICAM', 'ID', 'COL_6', 'col_6'];
-    
-    // COLUMNA T EXACTA PARA TEAM LEADER
     const KEYS_TL_S = ['Team Leader', 'COL_20', 'col_20'];
-    
-    // COLUMNA W EXACTA PARA CIERRE
     const KEYS_CIERRE_S = ['Cierre', 'COL_23', 'col_23'];
 
-    // UTILIDAD: RENDERIZAR BARRAS DE CIERRES PENDIENTES
     function renderCierresPendientes(cierresDict, containerId) {
         const sortedTLs = Object.keys(cierresDict).sort((a, b) => cierresDict[b].length - cierresDict[a].length);
         if(sortedTLs.length === 0) {
@@ -408,16 +415,14 @@
     }
 
     // ==========================================
-    // LÓGICA AUDITORÍAS REGIONAL (SHEETS - EL MAS IMPORTANTE)
+    // LÓGICA AUDITORÍAS REGIONAL (SHEETS)
     // ==========================================
     function poblarFiltrosSheets(datos) {
         const proc = new Set(), tl = new Set();
         datos.forEach(d => { 
-            // Ignorar la fila de headers si n8n la devolvió
             if (d.COL_7 === "Fecha de detección") return;
-            
-            let p = buscarValor(d, KEYS_PROC_S); if(p) proc.add(p); 
-            let t = buscarValor(d, KEYS_TL_S); if(t && t.trim() !== '') tl.add(t); 
+            let p = buscarValor(d, KEYS_PROC_S); if(p && esValido(p)) proc.add(p); 
+            let t = buscarValor(d, KEYS_TL_S); if(t && esValido(t)) tl.add(t); 
         });
         Array.from(proc).sort().forEach(x => document.getElementById('filter-proceso').innerHTML += `<option value="${x}">${x}</option>`);
         Array.from(tl).sort().forEach(x => document.getElementById('filter-tl').innerHTML += `<option value="${x}">${x}</option>`);
@@ -428,11 +433,16 @@
         const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosSheets.filter(d => {
-            // Ignorar encabezados
             if (d.COL_7 === "Fecha de detección" || d["Fecha de detección"] === "Fecha de detección") return false;
+            
+            let tl = buscarValor(d, KEYS_TL_S);
+            let auditor = buscarValor(d, KEYS_AUDI_S);
+            
+            // EXCLUIR REGISTROS SIN TEAM LEADER O SIN AUDITOR
+            if (!esValido(tl) || !esValido(auditor)) return false;
 
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', tl = buscarValor(d, KEYS_TL_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '';
-            let meliLimpio = limpiarFolio(meliBruto);
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '';
+            let meliLimpio = extraerSoloFolio(meliBruto);
 
             let dt = parseFecha(fCrea);
             if (dt && dIni && dt < dIni) return false;
@@ -446,33 +456,22 @@
         res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_S))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_S))||0));
         const countTipo = {}, countAuditor = {}, countTL = {}, cierresPendientes = {}; 
         let htmlCards = '';
-        
-        // Excluir llaves sistémicas de las tarjetas para no repetir
         const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, ...KEYS_CIERRE_S, 'json', 'row_number'];
 
         res.forEach(d => {
             const meliBruto = buscarValor(d, KEYS_MELI_S);
-            const meli = limpiarFolio(meliBruto);
+            const meli = extraerSoloFolio(meliBruto);
             const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
-            const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
+            const a1 = buscarValor(d, KEYS_AUDI_S);
+            const tl = buscarValor(d, KEYS_TL_S);
             
-            // Extracción estricta de Columna T (Team Leader)
-            let tl = buscarValor(d, KEYS_TL_S);
-            if (!tl || String(tl).trim() === '') tl = 'Sin asignar';
-            
-            // Validar para gráficas
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
 
-            // ESTRICTO: Columna W (Cierre)
+            // ESTRICTO: Solo si Columna W dice "Abierto"
             let statusCierre = buscarValor(d, KEYS_CIERRE_S);
-            let stringCierre = String(statusCierre).trim().toLowerCase();
-            
-            // Solo es Abierto si la columna W dice explícitamente "Abierto".
-            let isPending = (stringCierre === 'abierto');
-            
-            if (isPending && tl && tl !== 'Sin asignar') {
+            if (statusCierre && String(statusCierre).trim().toLowerCase() === 'abierto') {
                 if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
                 cierresPendientes[tl].push(meli);
             }
@@ -525,13 +524,13 @@
     }
 
     // ==========================================
-    // LÓGICA HISTÓRICO (FORMS - OPCIONAL SI LO USAS)
+    // LÓGICA HISTÓRICO (FORMS)
     // ==========================================
     function poblarFiltrosForms(datos) {
         const proc = new Set(), tl = new Set();
         datos.forEach(d => { 
-            let p = buscarValor(d, KEYS_PROC_S); if(p) proc.add(p); 
-            let t = buscarValor(d, KEYS_TL_S); if(t) tl.add(t); 
+            let p = buscarValor(d, KEYS_PROC_S); if(p && esValido(p)) proc.add(p); 
+            let t = buscarValor(d, KEYS_TL_S); if(t && esValido(t)) tl.add(t); 
         });
         Array.from(proc).sort().forEach(x => document.getElementById('filter-forms-proceso').innerHTML += `<option value="${x}">${x}</option>`);
         Array.from(tl).sort().forEach(x => document.getElementById('filter-forms-tl').innerHTML += `<option value="${x}">${x}</option>`);
@@ -542,27 +541,70 @@
         const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosForms.filter(d => {
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', tl = buscarValor(d, KEYS_TL_S) || '', meli = buscarValor(d, KEYS_MELI_S) || '';
+            let tl = buscarValor(d, KEYS_TL_S);
+            let auditor = buscarValor(d, KEYS_AUDI_S);
+            
+            // EXCLUIR REGISTROS SIN TEAM LEADER O SIN AUDITOR
+            if (!esValido(tl) || !esValido(auditor)) return false;
+
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '';
+            let meliLimpio = extraerSoloFolio(meliBruto);
+
             let dt = parseFecha(fCrea);
             if (dt && dIni && dt < dIni) return false;
             if (pSel && proc !== pSel) return false;
             if (tlSel && tl !== tlSel) return false;
-            if (qId && !String(meli).toLowerCase().includes(qId)) return false;
+            if (qId && !String(meliLimpio).toLowerCase().includes(qId)) return false;
             if (qGen && !Object.values(d).join(' ').toLowerCase().includes(qGen)) return false;
             return true;
         });
 
-        const countTipo = {}, countAuditor = {}, countTL = {};
+        const countTipo = {}, countAuditor = {}, countTL = {}, cierresPendientes = {};
+        let htmlCards = '';
+        const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, ...KEYS_CIERRE_S, 'json', 'row_number'];
+
         res.forEach(d => {
+            const meliBruto = buscarValor(d, KEYS_MELI_S);
+            const meli = extraerSoloFolio(meliBruto);
             const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
-            const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
-            let tl = buscarValor(d, KEYS_TL_S); if (!tl || String(tl).trim() === '') tl = 'Sin asignar';
+            const a1 = buscarValor(d, KEYS_AUDI_S);
+            const tl = buscarValor(d, KEYS_TL_S);
+            
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
+
+            let statusCierre = buscarValor(d, KEYS_CIERRE_S);
+            if (statusCierre && String(statusCierre).trim().toLowerCase() === 'abierto') {
+                if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
+                cierresPendientes[tl].push(meli);
+            }
+
+            let htmlDyn = '';
+            for (let key in d) {
+                let val = d[key];
+                if (val && String(val).trim() !== '' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
+                    if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
+                    let displayKey = key.startsWith('COL_') || key.startsWith('col_') ? 'Dato Extra' : key;
+                    htmlDyn += `<div class="dy-item"><span class="dy-label">${displayKey}</span><span class="dy-value">${val}</span></div>`;
+                }
+            }
+
+            htmlCards += `
+            <div class="audi-card">
+                <div class="audi-header">
+                    <span class="audi-meli">${meli}</span>
+                    <span class="audi-tag">${tipo}</span>
+                </div>
+                <div class="audi-auditor">Auditor: <span>${a1}</span></div>
+                <div class="audi-dynamic">${htmlDyn}</div>
+            </div>`;
         });
 
+        document.getElementById('contenido-forms-cards').innerHTML = htmlCards || '<h3 style="grid-column:1/-1; text-align:center;">Sin resultados.</h3>';
         document.getElementById('kpi-forms-total').innerText = res.length;
+        
+        renderCierresPendientes(cierresPendientes, 'cierres-forms-list');
 
         if (chartTipoF) chartTipoF.destroy();
         chartTipoF = new Chart(document.getElementById('chartTipoForms').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }});

@@ -6,87 +6,173 @@
     <title>Tablero de Control - MXNL01</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+
         :root {
-            --bg-beige: #fefce8;
+            --bg-main: #fefce8; /* Fondo beige claro idéntico a Grid */
+            --header-bg: #fbbf24; /* Amarillo del banner */
+            --header-text: #1e3a8a; /* Azul oscuro del título */
             --card-bg: #ffffff;
-            --text-main: #334155;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
             --border-light: #e2e8f0;
-            --red-main: #dc2626;
-            --red-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-            --yellow-main: #eab308;
-            --green-main: #22c55e;
-            --orange-main: #ea580c;
-            --orange-gradient: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
-            --blue-auditor: #2563eb;
+            --tab-sql: #dc2626;
+            --tab-sheets: #facc15;
+            --tab-regional: #f97316;
         }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-beige); color: var(--text-main); margin: 0; padding: 0; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-main); 
+            color: var(--text-dark); 
+            margin: 0; 
+            padding: 0; 
+        }
 
-        .main-header-banner { background-color: #fbbf24; color: #1e3a8a; text-align: center; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .main-header-banner h1 { margin: 0; font-size: 2rem; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
-        .main-header-banner p { margin: 5px 0 0 0; font-weight: 600; font-size: 1.1rem; }
+        /* BANNER SUPERIOR */
+        .main-header-banner { 
+            background-color: var(--header-bg); 
+            color: var(--header-text); 
+            text-align: center; 
+            padding: 25px 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+        }
+        .main-header-banner h1 { 
+            margin: 0; 
+            font-size: 2.2rem; 
+            text-transform: uppercase; 
+            font-weight: 900; 
+            letter-spacing: 1px; 
+        }
+        .main-header-banner p { 
+            margin: 5px 0 0 0; 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+        }
 
-        .container { max-width: 1350px; margin: 0 auto; padding: 0 20px; }
-        #status { text-align: center; padding: 15px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+        #status { text-align: center; padding: 15px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-weight: bold; margin-bottom: 20px; margin-top: 20px;}
 
-        .tabs-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .tab-btn { padding: 15px 30px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: all 0.3s ease; background: #ffffff; color: #64748b; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 2px solid transparent; }
-        
-        .tab-btn.active-red { background: var(--red-gradient); color: white; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4); }
-        .tab-btn.active-yellow { background: #facc15; color: #1e3a8a; box-shadow: 0 4px 15px rgba(234, 179, 8, 0.4); border: 2px solid #eab308; }
-        .tab-btn.active-orange { background: var(--orange-gradient); color: white; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4); }
+        /* TABS ESTILO GRID */
+        .tabs-container { 
+            display: flex; 
+            justify-content: center; 
+            gap: 15px; 
+            margin-top: 25px; 
+            margin-bottom: 30px; 
+        }
+        .tab-btn { 
+            background: var(--card-bg); 
+            color: var(--text-muted); 
+            padding: 12px 30px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 1.1rem; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+        }
+        .tab-btn:hover { transform: translateY(-2px); }
+        .tab-btn.active-sql { background: var(--tab-sql); color: white; box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3); }
+        .tab-btn.active-sheets { background: var(--tab-sheets); color: var(--header-text); box-shadow: 0 6px 15px rgba(250, 204, 21, 0.4); }
+        .tab-btn.active-regional { background: var(--tab-regional); color: white; box-shadow: 0 6px 15px rgba(249, 115, 22, 0.3); }
 
         .panel { display: none; }
         .panel.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .filters-grid { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 25px; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-light); align-items: flex-end; }
-        .filter-group { display: flex; flex-direction: column; flex: 1; min-width: 200px; }
-        .filter-group label { font-size: 0.8rem; font-weight: 800; margin-bottom: 8px; color: #1e293b; text-transform: uppercase; }
-        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-size: 0.95rem; background-color: #f8fafc; }
-        
-        .kpi-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .kpi-card { background: #ffffff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        #panel-sql .kpi-card { border-bottom: 5px solid var(--red-main); }
-        #panel-sheets .kpi-card { border-bottom: 5px solid var(--green-main); }
-        #panel-forms .kpi-card { border-bottom: 5px solid var(--orange-main); }
-        
-        .kpi-title { font-size: 0.85rem; color: #64748b; font-weight: 800; text-transform: uppercase; }
-        .kpi-value-red { font-size: 2.2rem; font-weight: 900; margin-top: 10px; color: var(--red-main); }
-        .kpi-value-green { font-size: 2.2rem; font-weight: 900; margin-top: 10px; color: var(--green-main); }
-        .kpi-value-orange { font-size: 2.2rem; font-weight: 900; margin-top: 10px; color: var(--orange-main); }
+        /* FILTROS (UNA SOLA CAJA BLANCA) */
+        .filters-wrapper {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            margin-bottom: 25px;
+        }
+        .filters-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 20px; 
+        }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { 
+            font-size: 0.8rem; 
+            font-weight: 900; 
+            margin-bottom: 8px; 
+            color: var(--text-dark); 
+            text-transform: uppercase; 
+        }
+        input, select { 
+            padding: 12px; 
+            border: 1px solid var(--border-light); 
+            border-radius: 8px; 
+            outline: none; 
+            font-size: 0.95rem; 
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8fafc; 
+        }
 
-        .chart-box { background: #ffffff; border-radius: 12px; padding: 20px; height: 350px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .chart-half { background: #ffffff; border-radius: 12px; padding: 20px; height: 350px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        /* BIG KPIs */
+        .kpi-wrapper { display: flex; gap: 20px; margin-bottom: 25px; }
+        .kpi-single { 
+            flex: 1; 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 30px; 
+            text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+        }
+        .kpi-title { font-size: 1rem; color: var(--text-dark); font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
+        .kpi-number { font-size: 3.5rem; font-weight: 900; }
+        .text-red { color: #dc2626; }
+        .text-orange { color: #ea580c; }
+        .text-green { color: #16a34a; }
 
-        .table-container { max-height: 500px; overflow-y: auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-light); }
-        th { background: #f8fafc; position: sticky; top: 0; color: #334155; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
-        .monto-rojo { color: var(--red-main); font-weight: bold; }
+        /* GRÁFICOS (3 COLUMNAS) */
+        .charts-3-col { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 25px; 
+        }
+        .chart-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 25px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+        }
+        .chart-title { 
+            text-align: center; 
+            font-weight: 900; 
+            color: var(--text-dark); 
+            text-transform: uppercase; 
+            margin-bottom: 20px; 
+            font-size: 0.95rem;
+        }
+        .canvas-container { position: relative; height: 300px; width: 100%; }
 
+        /* TABLAS Y TARJETAS INFERIORES */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 25px; }
-        .audi-card { background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); border: 1px solid #fef08a; border-left: 6px solid #facc15; display: flex; flex-direction: column; }
-        #panel-forms .audi-card { border: 1px solid #fed7aa; border-left: 6px solid #f97316; }
+        .audi-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-light); display: flex; flex-direction: column; }
+        .audi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .audi-meli { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
+        .audi-tag { background: #fef08a; color: #854d0e; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; }
+        .audi-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; font-weight: 700; }
         
-        .audi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .audi-meli { font-size: 1.3rem; font-weight: 900; color: #1e293b; }
-        .audi-tag { background: #fef08a; color: #854d0e; padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
-        #panel-forms .audi-tag { background: #ffedd5; color: #9a3412; }
-        
-        .audi-meta { font-size: 0.8rem; color: #64748b; margin-bottom: 15px; font-weight: 600; }
-        .audi-auditor-box { background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-        .audi-auditor-row { font-size: 0.85rem; margin-bottom: 4px; }
-        .audi-auditor-label { font-weight: 800; color: #475569; }
-        .audi-auditor-name { color: var(--blue-auditor); font-weight: 700; }
-
-        .audi-dynamic { border-top: 1px dashed #cbd5e1; padding-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .audi-dynamic { border-top: 1px solid var(--border-light); padding-top: 15px; display: flex; flex-direction: column; gap: 12px; }
         .dy-item { display: flex; flex-direction: column; }
-        .dy-label { font-size: 0.75rem; color: #64748b; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
-        .dy-value { font-size: 0.95rem; color: #1e293b; }
-        .dy-link { color: var(--blue-auditor); font-weight: bold; text-decoration: none; }
+        .dy-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
+        .dy-value { font-size: 0.95rem; color: var(--text-dark); font-weight: 700;}
+        .dy-link { color: #2563eb; font-weight: 900; text-decoration: none; }
         .dy-link:hover { text-decoration: underline; }
+
+        .table-container { max-height: 500px; overflow-y: auto; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); padding: 20px;}
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-light); font-weight: 700;}
+        th { background: #f8fafc; position: sticky; top: 0; color: var(--text-dark); font-weight: 900; text-transform: uppercase; font-size: 0.85rem; }
+        .monto-rojo { color: var(--tab-sql); font-weight: 900; }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -104,35 +190,38 @@
     <div id="status">Cargando bases de datos desde n8n...</div>
 
     <div class="tabs-container" id="tabs-bar" style="display:none;">
-        <button class="tab-btn active-red" id="btn-tab-sql" onclick="mostrarTab('sql')">
-            📊 Inflaciones de IS (Query SQL)
-        </button>
-        <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">
-            📝 Hallazgos de Auditorías
-        </button>
-        <button class="tab-btn" id="btn-tab-forms" onclick="mostrarTab('forms')">
-            🗃️ Hallazgos Históricos (Forms)
-        </button>
+        <button class="tab-btn active-sql" id="btn-tab-sql" onclick="mostrarTab('sql')">📊 SQL</button>
+        <button class="tab-btn" id="btn-tab-sheets" onclick="mostrarTab('sheets')">📝 SHEETS</button>
+        <button class="tab-btn" id="btn-tab-forms" onclick="mostrarTab('forms')">🗃️ AUDITORÍAS REGIONAL</button>
     </div>
 
-    <!-- SECCIÓN 1: INFLACIONES DE IS -->
+    <!-- SECCIÓN 1: SQL -->
     <div class="panel active" id="panel-sql">
-        <div class="filters-grid">
-            <div class="filter-group"><label>Fecha Inicio:</label><input type="date" id="filter-sql-inicio" onchange="filtrarSQL()"></div>
-            <div class="filter-group"><label>Fecha Fin:</label><input type="date" id="filter-sql-fin" onchange="filtrarSQL()"></div>
-            <div class="filter-group"><label>Seleccionar IS:</label><select id="filter-sql-is" onchange="filtrarSQL()"><option value="">Todas las IS</option></select></div>
-            <div class="filter-group"><label>Buscar (SKU o Seller):</label><input type="text" id="search-sql" placeholder="Ej. SKU123..." oninput="filtrarSQL()"></div>
+        <div class="filters-wrapper">
+            <div class="filters-grid">
+                <div class="filter-group"><label>Buscador General:</label><input type="text" id="search-sql" placeholder="SKU o Seller..." oninput="filtrarSQL()"></div>
+                <div class="filter-group"><label>Seleccionar IS:</label><select id="filter-sql-is" onchange="filtrarSQL()"><option value="">Todas las IS</option></select></div>
+                <div class="filter-group"><label>Fecha Inicio:</label><input type="date" id="filter-sql-inicio" onchange="filtrarSQL()"></div>
+                <div class="filter-group"><label>Fecha Fin:</label><input type="date" id="filter-sql-fin" onchange="filtrarSQL()"></div>
+            </div>
         </div>
 
-        <div class="kpi-container">
-            <div class="kpi-card"><div class="kpi-title">Inbounds con Diferencia</div><div class="kpi-value-red" id="kpi-inbounds">0</div></div>
-            <div class="kpi-card"><div class="kpi-title">Total Piezas Faltantes/Sobrantes</div><div class="kpi-value-red" id="kpi-piezas">0</div></div>
-            <div class="kpi-card"><div class="kpi-title">Impacto Total (USD)</div><div class="kpi-value-red" id="kpi-usd">$0.00</div></div>
+        <div class="kpi-wrapper">
+            <div class="kpi-single">
+                <div class="kpi-title">TOTAL INBOUNDS AFECTADOS</div>
+                <div class="kpi-number text-red" id="kpi-inbounds">0</div>
+            </div>
+            <div class="kpi-single">
+                <div class="kpi-title">IMPACTO TOTAL (USD)</div>
+                <div class="kpi-number text-red" id="kpi-usd">$0.00</div>
+            </div>
         </div>
 
-        <div class="chart-box">
-            <div style="text-align: center; font-weight: 900; color: #dc2626; margin-bottom: 10px; text-transform: uppercase;">Top 10 Sellers - Mayor Impacto USD</div>
-            <div style="position: relative; height: 280px; width: 100%;"><canvas id="chartSQL"></canvas></div>
+        <div class="charts-3-col" style="grid-template-columns: 1fr;">
+            <div class="chart-card">
+                <div class="chart-title">TOP 10 SELLERS - MAYOR IMPACTO USD</div>
+                <div class="canvas-container"><canvas id="chartSQL"></canvas></div>
+            </div>
         </div>
 
         <div class="table-container">
@@ -143,57 +232,65 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 2: HALLAZGOS AUDITORÍAS -->
+    <!-- SECCIÓN 2: SHEETS -->
     <div class="panel" id="panel-sheets">
-        <div class="filters-grid">
-            <div class="filter-group"><label>Rango de Fechas:</label><div style="display:flex; gap:10px;"><input type="date" id="filter-fecha-inicio" onchange="filtrarSheets()" style="width:50%;"><input type="date" id="filter-fecha-fin" onchange="filtrarSheets()" style="width:50%;"></div></div>
-            <div class="filter-group"><label>Auditor:</label><select id="filter-auditor" onchange="filtrarSheets()"><option value="">Todos los auditores</option></select></div>
-            <div class="filter-group"><label>Tipo de Auditoría:</label><select id="filter-incidencia" onchange="filtrarSheets()"><option value="">Todos los tipos</option></select></div>
-            <div class="filter-group"><label>Buscar ID Meli / Texto:</label><input type="text" id="search-sheets" placeholder="Ej. MELI123..." oninput="filtrarSheets()"></div>
+        <div class="filters-wrapper">
+            <div class="filters-grid">
+                <div class="filter-group"><label>Buscador General:</label><input type="text" id="search-sheets-gen" placeholder="Palabra clave..." oninput="filtrarSheets()"></div>
+                <div class="filter-group"><label>Folio / ID / Meli:</label><input type="text" id="search-sheets-id" placeholder="Escribe el folio..." oninput="filtrarSheets()"></div>
+                <div class="filter-group"><label>Fecha Inicio:</label><input type="date" id="filter-fecha-inicio" onchange="filtrarSheets()"></div>
+                <div class="filter-group"><label>Proceso:</label><select id="filter-proceso" onchange="filtrarSheets()"><option value="">Todos los procesos</option></select></div>
+                <div class="filter-group"><label>Team Leader:</label><select id="filter-tl" onchange="filtrarSheets()"><option value="">Todos los líderes</option></select></div>
+            </div>
         </div>
 
-        <div class="kpi-container">
-            <div class="kpi-card"><div class="kpi-title">Total Reportes de Auditoría</div><div class="kpi-value-green" id="kpi-auditorias-total">0</div></div>
-            <div class="kpi-card"><div class="kpi-title">Monto Total Involucrado</div><div class="kpi-value-green" id="kpi-auditorias-monto">$0.00</div></div>
+        <div class="kpi-wrapper">
+            <div class="kpi-single">
+                <div class="kpi-title">TOTAL REGISTROS (ASIGNADOS)</div>
+                <div class="kpi-number text-orange" id="kpi-auditorias-total">0</div>
+            </div>
+            <div class="kpi-single">
+                <div class="kpi-title">MONTO TOTAL INVOLUCRADO</div>
+                <div class="kpi-number text-orange" id="kpi-auditorias-monto">$0.00</div>
+            </div>
         </div>
 
-        <div class="charts-row">
-            <div class="chart-half">
-                <div style="text-align: center; font-weight: 900; color: #15803d; margin-bottom: 10px; text-transform: uppercase;">Hallazgos por Proceso</div>
-                <div style="position: relative; height: 280px; width: 100%;"><canvas id="chartProceso"></canvas></div>
-            </div>
-            <div class="chart-half">
-                <div style="text-align: center; font-weight: 900; color: #15803d; margin-bottom: 10px; text-transform: uppercase;">Hallazgos por Auditor</div>
-                <div style="position: relative; height: 280px; width: 100%;"><canvas id="chartAuditor"></canvas></div>
-            </div>
+        <div class="charts-3-col">
+            <div class="chart-card"><div class="chart-title">HALLAZGOS POR TIPO</div><div class="canvas-container"><canvas id="chartTipoSheets"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HALLAZGOS POR AUDITOR</div><div class="canvas-container"><canvas id="chartAuditorSheets"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HALLAZGOS POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLSheets"></canvas></div></div>
         </div>
 
         <div class="cards-grid" id="contenido-sheets-cards"></div>
     </div>
 
-    <!-- SECCIÓN 3: HISTÓRICO FORMS -->
+    <!-- SECCIÓN 3: FORMS / REGIONAL -->
     <div class="panel" id="panel-forms">
-        <div class="filters-grid">
-            <div class="filter-group"><label>Rango de Fechas:</label><div style="display:flex; gap:10px;"><input type="date" id="filter-forms-inicio" onchange="filtrarForms()" style="width:50%;"><input type="date" id="filter-forms-fin" onchange="filtrarForms()" style="width:50%;"></div></div>
-            <div class="filter-group"><label>Auditor:</label><select id="filter-forms-auditor" onchange="filtrarForms()"><option value="">Todos los auditores</option></select></div>
-            <div class="filter-group"><label>Tipo de Auditoría:</label><select id="filter-forms-incidencia" onchange="filtrarForms()"><option value="">Todos los tipos</option></select></div>
-            <div class="filter-group"><label>Buscar Texto:</label><input type="text" id="search-forms" placeholder="Ej. MELI123..." oninput="filtrarForms()"></div>
+        <div class="filters-wrapper">
+            <div class="filters-grid">
+                <div class="filter-group"><label>Buscador General:</label><input type="text" id="search-forms-gen" placeholder="Palabra clave..." oninput="filtrarForms()"></div>
+                <div class="filter-group"><label>Folio / ID / Meli:</label><input type="text" id="search-forms-id" placeholder="Escribe el folio..." oninput="filtrarForms()"></div>
+                <div class="filter-group"><label>Fecha Inicio:</label><input type="date" id="filter-forms-inicio" onchange="filtrarForms()"></div>
+                <div class="filter-group"><label>Proceso / Auditoría:</label><select id="filter-forms-proceso" onchange="filtrarForms()"><option value="">Todos los procesos</option></select></div>
+                <div class="filter-group"><label>Team Leader:</label><select id="filter-forms-tl" onchange="filtrarForms()"><option value="">Todos los líderes</option></select></div>
+            </div>
         </div>
 
-        <div class="kpi-container">
-            <div class="kpi-card"><div class="kpi-title">Reportes Históricos</div><div class="kpi-value-orange" id="kpi-forms-total">0</div></div>
-            <div class="kpi-card"><div class="kpi-title">Monto Involucrado Histórico</div><div class="kpi-value-orange" id="kpi-forms-monto">$0.00</div></div>
+        <div class="kpi-wrapper">
+            <div class="kpi-single">
+                <div class="kpi-title">TOTAL REGISTROS HISTÓRICOS</div>
+                <div class="kpi-number text-orange" id="kpi-forms-total">0</div>
+            </div>
+            <div class="kpi-single">
+                <div class="kpi-title">MONTO HISTÓRICO</div>
+                <div class="kpi-number text-orange" id="kpi-forms-monto">$0.00</div>
+            </div>
         </div>
 
-        <div class="charts-row">
-            <div class="chart-half">
-                <div style="text-align: center; font-weight: 900; color: #c2410c; margin-bottom: 10px; text-transform: uppercase;">Histórico por Tipo</div>
-                <div style="position: relative; height: 280px; width: 100%;"><canvas id="chartProcesoForms"></canvas></div>
-            </div>
-            <div class="chart-half">
-                <div style="text-align: center; font-weight: 900; color: #c2410c; margin-bottom: 10px; text-transform: uppercase;">Histórico por Auditor</div>
-                <div style="position: relative; height: 280px; width: 100%;"><canvas id="chartAuditorForms"></canvas></div>
-            </div>
+        <div class="charts-3-col">
+            <div class="chart-card"><div class="chart-title">HALLAZGOS POR TIPO</div><div class="canvas-container"><canvas id="chartTipoForms"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HALLAZGOS POR AUDITOR</div><div class="canvas-container"><canvas id="chartAuditorForms"></canvas></div></div>
+            <div class="chart-card"><div class="chart-title">HALLAZGOS POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLForms"></canvas></div></div>
         </div>
 
         <div class="cards-grid" id="contenido-forms-cards"></div>
@@ -203,12 +300,15 @@
 <script>
     let datosSQL = [], datosSheets = [], datosForms = [];
     let chartSQLInstancia = null;
-    let chartProcesoInstancia = null, chartAuditorInstancia = null;
-    let chartProcesoFormsInstancia = null, chartAuditorFormsInstancia = null;
+    let chartTipoS = null, chartAuditorS = null, chartTLS = null;
+    let chartTipoF = null, chartAuditorF = null, chartTLF = null;
     
-    const coloresPaleta = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#eab308'];
+    // Paleta de colores más vibrante estilo dashboard
+    const coloresPaleta = ['#ef4444', '#facc15', '#f97316', '#3b82f6', '#10b981', '#a855f7', '#ec4899', '#14b8a6', '#6366f1', '#84cc16', '#f43f5e', '#0ea5e9'];
 
-    // --- UTILIDADES ---
+    Chart.defaults.font.family = "'Montserrat', sans-serif";
+    Chart.defaults.font.weight = "700";
+
     function formatearDinero(num) { return '$' + (parseFloat(num) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function parseFecha(str) {
         if (!str || typeof str !== 'string') return null;
@@ -229,14 +329,10 @@
         return null;
     }
 
-    // Adaptado a las nuevas columnas de la imagen:
     function limpiarDatosSheets(rawArray) {
         let limpios = [];
         rawArray.forEach(row => {
-            // Evitar procesar encabezados
             if (row.COL_7 === "Fecha de detección" || row["Fecha de detección"] === "Fecha de detección") return;
-            
-            // Busca por llave de encabezado (si n8n lo mandó así) o por índice de columna (COL_X)
             let nuevoObj = {
                 "Fecha de detección": row["Fecha de detección"] || row.COL_7 || row.col_7,
                 "Auditor LP": row["Auditor LP"] || row["Auditor"] || row.COL_8 || row.col_8,
@@ -245,7 +341,6 @@
                 "Auditoria": row["Auditoria"] || row.COL_11 || row.col_11,
                 "Fecha de Incidencia": row["Fecha de Incidencia"] || row.COL_12 || row.col_12,
                 "Tipo de Hallazgo": row["Tipo de Hallazgo"] || row.COL_13 || row.col_13,
-                // Asumiendo que Meli puede venir en columnas intermedias o por nombre
                 "MELI": row["MELI"] || row["MELICAM"] || row.COL_14 || row.col_14 || row["Subject e-mail"] || row.COL_6 || row.col_6, 
                 "MXN": row["MXN"] || row.COL_17 || row.col_17,
                 "Responsable": row["Responsable"] || row.COL_18 || row.col_18,
@@ -254,15 +349,11 @@
                 "Supervisor": row["Supervisor"] || row.COL_21 || row.col_21,
                 "Matriz de Disciplina": row["Matriz de Disciplina"] || row.COL_22 || row.col_22
             };
-
-            // Conservar el resto de las llaves dinámicas para no perder info extra (evidencias, observaciones)
             for(let k in row) {
                 if(!k.toLowerCase().startsWith('col_') && !nuevoObj[k] && k !== 'json') {
                     nuevoObj[k] = row[k];
                 }
             }
-
-            // Validar que la fila tenga datos reales
             if (nuevoObj["Auditor LP"] || nuevoObj["Tipo de Hallazgo"] || nuevoObj["Proceso Madre"]) {
                 limpios.push(nuevoObj);
             }
@@ -270,7 +361,6 @@
         return limpios;
     }
 
-    // Cargar las 3 bases de datos
     Promise.all([
         fetch('inbounds.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
         fetch('hallazgos.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
@@ -279,7 +369,7 @@
         try {
             datosSQL = normalizarN8N(dSQL);
             datosSheets = limpiarDatosSheets(normalizarN8N(dSheets)); 
-            datosForms = normalizarN8N(dForms);
+            datosForms = normalizarN8N(dForms); // Opcionalmente usar limpiarDatosSheets si comparten formato
 
             document.getElementById('status').style.display = 'none';
             document.getElementById('tabs-bar').style.display = 'flex';
@@ -304,18 +394,18 @@
 
         if (tab === 'sql') {
             document.getElementById('panel-sql').classList.add('active');
-            document.getElementById('btn-tab-sql').className = 'tab-btn active-red';
+            document.getElementById('btn-tab-sql').className = 'tab-btn active-sql';
         } else if (tab === 'sheets') {
             document.getElementById('panel-sheets').classList.add('active');
-            document.getElementById('btn-tab-sheets').className = 'tab-btn active-yellow';
+            document.getElementById('btn-tab-sheets').className = 'tab-btn active-sheets';
         } else {
             document.getElementById('panel-forms').classList.add('active');
-            document.getElementById('btn-tab-forms').className = 'tab-btn active-orange';
+            document.getElementById('btn-tab-forms').className = 'tab-btn active-regional';
         }
     }
 
     // ==========================================
-    // 1. INFLACIONES SQL (ROJA)
+    // 1. SQL
     // ==========================================
     function poblarFiltrosSQL(datos) {
         const setIS = new Set();
@@ -338,13 +428,12 @@
         });
 
         document.getElementById('kpi-inbounds').innerText = new Set(res.map(d=>d.inboundId)).size;
-        document.getElementById('kpi-piezas').innerText = res.reduce((s, d) => s + (parseFloat(d.diferencia)||0), 0);
         document.getElementById('kpi-usd').innerText = formatearDinero(res.reduce((s, d) => s + (parseFloat(d.diferenciaUsd)||0), 0));
 
         document.getElementById('contenido-sql').innerHTML = res.map(item => `
             <tr>
-                <td style="font-size:0.8rem; color:#64748b;">${(item.fecha || '').split('T')[0]}</td>
-                <td><strong>${item.inboundId || '-'}</strong></td><td>${item.nombreSeller || '-'}</td><td><code>${item.sku || '-'}</code></td>
+                <td style="color:var(--text-muted);">${(item.fecha || '').split('T')[0]}</td>
+                <td><strong>${item.inboundId || '-'}</strong></td><td>${item.nombreSeller || '-'}</td><td>${item.sku || '-'}</td>
                 <td>${item.cantDeclarada ?? '-'}</td><td>${item.cantRecibida ?? '-'}</td>
                 <td style="font-weight:900; color: ${parseFloat(item.diferencia)<0 ? '#dc2626' : '#2563eb'}">${item.diferencia}</td>
                 <td class="monto-rojo">${formatearDinero(item.diferenciaUsd)}</td>
@@ -356,114 +445,144 @@
 
         if (chartSQLInstancia) chartSQLInstancia.destroy();
         const ctx = document.getElementById('chartSQL').getContext('2d');
-        let grad = ctx.createLinearGradient(0, 0, 0, 300); grad.addColorStop(0, '#ef4444'); grad.addColorStop(1, '#b91c1c');
-        chartSQLInstancia = new Chart(ctx, { type: 'bar', data: { labels: topSellers, datasets: [{ data: topSellers.map(s => Math.abs(imp[s])), backgroundColor: grad, borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        chartSQLInstancia = new Chart(ctx, { 
+            type: 'bar', 
+            data: { labels: topSellers, datasets: [{ data: topSellers.map(s => Math.abs(imp[s])), backgroundColor: '#dc2626', borderRadius: 4 }] }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
     }
 
     // ==========================================
-    // 2. HALLAZGOS SHEETS (AMARILLO/VERDE)
+    // 2. SHEETS
     // ==========================================
-    // Actualizado con los nombres de la nueva tabla
     const KEYS_FECHA_S = ['Fecha de detección']; 
     const KEYS_AUDI_S = ['Auditor LP', 'Auditor']; 
     const KEYS_PROC_S = ['Proceso', 'Proceso Madre']; 
     const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria']; 
-    const KEYS_MELI_S = ['MELI', 'Subject e-mail'];
+    const KEYS_MELI_S = ['MELI', 'Subject e-mail', 'Folio'];
+    const KEYS_TL_S = ['Team Leader', 'Líder'];
 
     function poblarFiltrosSheets(datos) {
-        const auditores = new Set(), tipos = new Set();
-        datos.forEach(d => { let a = buscarValor(d, KEYS_AUDI_S); if(a) auditores.add(a); let t = buscarValor(d, KEYS_TIPO_S); if(t) tipos.add(t); });
-        Array.from(auditores).sort().forEach(a => document.getElementById('filter-auditor').innerHTML += `<option value="${a}">${a}</option>`);
-        Array.from(tipos).sort().forEach(t => document.getElementById('filter-incidencia').innerHTML += `<option value="${t}">${t}</option>`);
+        const proc = new Set(), tl = new Set();
+        datos.forEach(d => { 
+            let p = buscarValor(d, KEYS_PROC_S); if(p) proc.add(p); 
+            let t = buscarValor(d, KEYS_TL_S); if(t) tl.add(t); 
+        });
+        Array.from(proc).sort().forEach(x => document.getElementById('filter-proceso').innerHTML += `<option value="${x}">${x}</option>`);
+        Array.from(tl).sort().forEach(x => document.getElementById('filter-tl').innerHTML += `<option value="${x}">${x}</option>`);
     }
 
     function filtrarSheets() {
-        const fIni = document.getElementById('filter-fecha-inicio').value, fFin = document.getElementById('filter-fecha-fin').value;
-        const aSel = document.getElementById('filter-auditor').value, iSel = document.getElementById('filter-incidencia').value, qStr = document.getElementById('search-sheets').value.toLowerCase();
-        const dIni = fIni ? new Date(fIni + 'T00:00:00') : null, dFin = fFin ? new Date(fFin + 'T23:59:59') : null;
+        const fIni = document.getElementById('filter-fecha-inicio').value;
+        const pSel = document.getElementById('filter-proceso').value;
+        const tlSel = document.getElementById('filter-tl').value;
+        const qGen = document.getElementById('search-sheets-gen').value.toLowerCase();
+        const qId = document.getElementById('search-sheets-id').value.toLowerCase();
+        const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosSheets.filter(d => {
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', a1 = buscarValor(d, KEYS_AUDI_S) || '', tipo = buscarValor(d, KEYS_TIPO_S) || '';
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', tl = buscarValor(d, KEYS_TL_S) || '', meli = buscarValor(d, KEYS_MELI_S) || '';
             let dt = parseFecha(fCrea);
-            if (dt && ((dIni && dt < dIni) || (dFin && dt > dFin))) return false;
-            if (aSel && a1 !== aSel) return false;
-            if (iSel && tipo !== iSel) return false;
-            if (qStr && !Object.values(d).join(' ').toLowerCase().includes(qStr)) return false;
+            if (dt && dIni && dt < dIni) return false;
+            if (pSel && proc !== pSel) return false;
+            if (tlSel && tl !== tlSel) return false;
+            if (qId && !String(meli).toLowerCase().includes(qId)) return false;
+            if (qGen && !Object.values(d).join(' ').toLowerCase().includes(qGen)) return false;
             return true;
         });
 
         res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_S))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_S))||0));
-        let totMonto = 0; const countProceso = {}, countAuditor = {}; let htmlCards = '';
+        let totMonto = 0; const countTipo = {}, countAuditor = {}, countTL = {}; let htmlCards = '';
         const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_PROC_S, ...KEYS_TIPO_S, ...KEYS_MELI_S];
 
         res.forEach(d => {
-            const meli = buscarValor(d, KEYS_MELI_S) || '&nbsp;', tipo = buscarValor(d, KEYS_TIPO_S) || 'Pendiente de Clasificar';
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || 'Sin fecha', a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar', proc = buscarValor(d, KEYS_PROC_S) || 'Sin especificar';
-            countProceso[proc] = (countProceso[proc] || 0) + 1; countAuditor[a1] = (countAuditor[a1] || 0) + 1;
+            const meli = buscarValor(d, KEYS_MELI_S) || '&nbsp;', tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || 'Sin fecha', a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
+            const tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
+            
+            countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
+            countAuditor[a1] = (countAuditor[a1] || 0) + 1;
+            countTL[tl] = (countTL[tl] || 0) + 1;
+
             if (d["MXN"]) totMonto += (parseFloat(String(d["MXN"]).replace(/[^0-9.-]+/g,"")) || 0);
 
             let htmlDyn = '';
             for (let key in d) {
                 let val = d[key];
                 if (val && String(val).trim() !== '' && String(val).trim() !== '-' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
-                    if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Ver Evidencia 🔗</a>`;
+                    if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
                     htmlDyn += `<div class="dy-item"><span class="dy-label">${key}</span><span class="dy-value">${val}</span></div>`;
                 }
             }
-            htmlCards += `<div class="audi-card"><div class="audi-header"><span class="audi-meli">${meli}</span><span class="audi-tag">${tipo}</span></div><div class="audi-meta">Registro: ${fCrea} <br>Proceso: ${proc}</div><div class="audi-auditor-box"><div class="audi-auditor-row"><span class="audi-auditor-label">AUDITOR:</span> <span class="audi-auditor-name">${a1}</span></div></div>${htmlDyn !== '' ? `<div class="audi-dynamic">${htmlDyn}</div>` : ''}</div>`;
+            htmlCards += `<div class="audi-card"><div class="audi-header"><span class="audi-meli">${meli}</span><span class="audi-tag">${tipo}</span></div><div class="audi-meta">Registro: ${fCrea}</div><div class="dy-item"><span class="dy-label">AUDITOR LP</span><span class="dy-value" style="color:var(--text-dark);">${a1}</span></div><div class="audi-dynamic">${htmlDyn}</div></div>`;
         });
 
         document.getElementById('contenido-sheets-cards').innerHTML = htmlCards || '<h3 style="grid-column:1/-1; text-align:center;">Sin resultados.</h3>';
         document.getElementById('kpi-auditorias-total').innerText = res.length;
         document.getElementById('kpi-auditorias-monto').innerText = formatearDinero(totMonto);
 
-        if (chartProcesoInstancia) chartProcesoInstancia.destroy();
-        chartProcesoInstancia = new Chart(document.getElementById('chartProceso').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countProceso), datasets: [{ data: Object.values(countProceso), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '65%' }});
+        if (chartTipoS) chartTipoS.destroy();
+        chartTipoS = new Chart(document.getElementById('chartTipoSheets').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }});
 
         const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
-        if (chartAuditorInstancia) chartAuditorInstancia.destroy();
-        chartAuditorInstancia = new Chart(document.getElementById('chartAuditor').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        if (chartAuditorS) chartAuditorS.destroy();
+        chartAuditorS = new Chart(document.getElementById('chartAuditorSheets').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+
+        const tls = Object.keys(countTL).sort((a,b) => countTL[b] - countTL[a]);
+        if (chartTLS) chartTLS.destroy();
+        chartTLS = new Chart(document.getElementById('chartTLSheets').getContext('2d'), { type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
     }
 
     // ==========================================
-    // 3. HALLAZGOS HISTÓRICOS FORMS (NARANJA)
+    // 3. REGIONAL / FORMS
     // ==========================================
-    const KEYS_FECHA_F = ['Marca temporal', 'Fecha Auditoria']; 
-    const KEYS_AUDI_F = ['Auditor 1', 'Auditor']; 
-    const KEYS_TIPO_F = ['TIPO DE AUDITORIA', 'Tipo de Incidencia']; 
-    const KEYS_MELI_F = ['MELICAM', 'Meli', 'ID']; 
-
     function poblarFiltrosForms(datos) {
-        const auditores = new Set(), tipos = new Set();
-        datos.forEach(d => { let a = buscarValor(d, KEYS_AUDI_F); if(a) auditores.add(a); let t = buscarValor(d, KEYS_TIPO_F); if(t) tipos.add(t); });
-        Array.from(auditores).sort().forEach(a => document.getElementById('filter-forms-auditor').innerHTML += `<option value="${a}">${a}</option>`);
-        Array.from(tipos).sort().forEach(t => document.getElementById('filter-forms-incidencia').innerHTML += `<option value="${t}">${t}</option>`);
+        const proc = new Set(), tl = new Set();
+        datos.forEach(d => { 
+            let p = buscarValor(d, KEYS_PROC_S) || buscarValor(d, ['TIPO DE AUDITORIA']); if(p) proc.add(p); 
+            let t = buscarValor(d, KEYS_TL_S); if(t) tl.add(t); 
+        });
+        Array.from(proc).sort().forEach(x => document.getElementById('filter-forms-proceso').innerHTML += `<option value="${x}">${x}</option>`);
+        Array.from(tl).sort().forEach(x => document.getElementById('filter-forms-tl').innerHTML += `<option value="${x}">${x}</option>`);
     }
 
     function filtrarForms() {
-        const fIni = document.getElementById('filter-forms-inicio').value, fFin = document.getElementById('filter-forms-fin').value;
-        const aSel = document.getElementById('filter-forms-auditor').value, iSel = document.getElementById('filter-forms-incidencia').value, qStr = document.getElementById('search-forms').value.toLowerCase();
-        const dIni = fIni ? new Date(fIni + 'T00:00:00') : null, dFin = fFin ? new Date(fFin + 'T23:59:59') : null;
+        const fIni = document.getElementById('filter-forms-inicio').value;
+        const pSel = document.getElementById('filter-forms-proceso').value;
+        const tlSel = document.getElementById('filter-forms-tl').value;
+        const qGen = document.getElementById('search-forms-gen').value.toLowerCase();
+        const qId = document.getElementById('search-forms-id').value.toLowerCase();
+        const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosForms.filter(d => {
-            const fCrea = buscarValor(d, KEYS_FECHA_F) || '', a1 = buscarValor(d, KEYS_AUDI_F) || '', tipo = buscarValor(d, KEYS_TIPO_F) || '';
+            const fCrea = buscarValor(d, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']) || '', 
+                  proc = buscarValor(d, KEYS_PROC_S) || buscarValor(d, ['TIPO DE AUDITORIA']) || '', 
+                  tl = buscarValor(d, KEYS_TL_S) || '', 
+                  meli = buscarValor(d, ['MELICAM', 'Meli', 'ID', 'Subject e-mail']) || '';
             let dt = parseFecha(fCrea);
-            if (dt && ((dIni && dt < dIni) || (dFin && dt > dFin))) return false;
-            if (aSel && a1 !== aSel) return false;
-            if (iSel && tipo !== iSel) return false;
-            if (qStr && !Object.values(d).join(' ').toLowerCase().includes(qStr)) return false;
+            if (dt && dIni && dt < dIni) return false;
+            if (pSel && proc !== pSel) return false;
+            if (tlSel && tl !== tlSel) return false;
+            if (qId && !String(meli).toLowerCase().includes(qId)) return false;
+            if (qGen && !Object.values(d).join(' ').toLowerCase().includes(qGen)) return false;
             return true;
         });
 
-        res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_F))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_F))||0));
-        let totMonto = 0; const countTipo = {}, countAuditor = {}; let htmlCards = '';
-        const omitirKeys = [...KEYS_FECHA_F, ...KEYS_AUDI_F, ...KEYS_TIPO_F, ...KEYS_MELI_F];
+        res.sort((a, b) => (parseFecha(buscarValor(b, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']))||0) - (parseFecha(buscarValor(a, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']))||0));
+        let totMonto = 0; const countTipo = {}, countAuditor = {}, countTL = {}; let htmlCards = '';
+        const omitirKeys = ['Marca temporal', 'Fecha Auditoria', 'Auditor 1', 'Auditor', 'TIPO DE AUDITORIA', 'MELICAM', 'Meli', 'ID'];
 
         res.forEach(d => {
-            const meli = buscarValor(d, KEYS_MELI_F) || '&nbsp;', tipo = buscarValor(d, KEYS_TIPO_F) || 'Pendiente de Clasificar';
-            const fCrea = buscarValor(d, KEYS_FECHA_F) || 'Sin fecha', a1 = buscarValor(d, KEYS_AUDI_F) || 'Sin asignar';
-            countTipo[tipo] = (countTipo[tipo] || 0) + 1; countAuditor[a1] = (countAuditor[a1] || 0) + 1;
+            const meli = buscarValor(d, ['MELICAM', 'Meli', 'ID', 'Subject e-mail']) || '&nbsp;', 
+                  tipo = buscarValor(d, ['TIPO DE AUDITORIA', 'Tipo de Incidencia', 'Tipo de Hallazgo']) || 'Sin Clasificar';
+            const fCrea = buscarValor(d, ['Marca temporal', 'Fecha Auditoria', 'Fecha de detección']) || 'Sin fecha', 
+                  a1 = buscarValor(d, ['Auditor 1', 'Auditor', 'Auditor LP']) || 'Sin asignar';
+            const tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
             
+            countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
+            countAuditor[a1] = (countAuditor[a1] || 0) + 1;
+            countTL[tl] = (countTL[tl] || 0) + 1;
+
             for(let k in d) {
                 if(k.toLowerCase().includes('monto') || k.toLowerCase().includes('precio') || k.toLowerCase().includes('total') || k.toLowerCase().includes('mxn')) {
                     totMonto += (parseFloat(String(d[k]).replace(/[^0-9.-]+/g,"")) || 0);
@@ -474,23 +593,27 @@
             for (let key in d) {
                 let val = d[key];
                 if (val && String(val).trim() !== '' && String(val).trim() !== '-' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
-                    if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Ver Evidencia 🔗</a>`;
+                    if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
                     htmlDyn += `<div class="dy-item"><span class="dy-label">${key}</span><span class="dy-value">${val}</span></div>`;
                 }
             }
-            htmlCards += `<div class="audi-card"><div class="audi-header"><span class="audi-meli">${meli}</span><span class="audi-tag">${tipo}</span></div><div class="audi-meta">Registro: ${fCrea}</div><div class="audi-auditor-box"><div class="audi-auditor-row"><span class="audi-auditor-label">AUDITOR:</span> <span class="audi-auditor-name">${a1}</span></div></div>${htmlDyn !== '' ? `<div class="audi-dynamic">${htmlDyn}</div>` : ''}</div>`;
+            htmlCards += `<div class="audi-card"><div class="audi-header"><span class="audi-meli">${meli}</span><span class="audi-tag">${tipo}</span></div><div class="audi-meta">Registro: ${fCrea}</div><div class="dy-item"><span class="dy-label">AUDITOR LP</span><span class="dy-value" style="color:var(--text-dark);">${a1}</span></div><div class="audi-dynamic">${htmlDyn}</div></div>`;
         });
 
         document.getElementById('contenido-forms-cards').innerHTML = htmlCards || '<h3 style="grid-column:1/-1; text-align:center;">Sin resultados.</h3>';
         document.getElementById('kpi-forms-total').innerText = res.length;
         document.getElementById('kpi-forms-monto').innerText = formatearDinero(totMonto);
 
-        if (chartProcesoFormsInstancia) chartProcesoFormsInstancia.destroy();
-        chartProcesoFormsInstancia = new Chart(document.getElementById('chartProcesoForms').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '65%' }});
+        if (chartTipoF) chartTipoF.destroy();
+        chartTipoF = new Chart(document.getElementById('chartTipoForms').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '50%' }});
 
         const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
-        if (chartAuditorFormsInstancia) chartAuditorFormsInstancia.destroy();
-        chartAuditorFormsInstancia = new Chart(document.getElementById('chartAuditorForms').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        if (chartAuditorF) chartAuditorF.destroy();
+        chartAuditorF = new Chart(document.getElementById('chartAuditorForms').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+
+        const tls = Object.keys(countTL).sort((a,b) => countTL[b] - countTL[a]);
+        if (chartTLF) chartTLF.destroy();
+        chartTLF = new Chart(document.getElementById('chartTLForms').getContext('2d'), { type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
     }
 </script>
 </body>

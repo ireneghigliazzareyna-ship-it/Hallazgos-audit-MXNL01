@@ -17,8 +17,8 @@
             --text-muted: #64748b;
             --border-light: #e2e8f0;
             --tab-sql: #dc2626;
-            --tab-sheets: #facc15;
-            --tab-regional: #f97316;
+            --tab-sheets: #f97316;
+            --tab-regional: #facc15;
             --red-alert: #dc2626;
             --red-bg: #fee2e2;
         }
@@ -46,39 +46,21 @@
             font-weight: 900; 
             letter-spacing: 1px; 
         }
-        .main-header-banner p { 
-            margin: 5px 0 0 0; 
-            font-weight: 700; 
-            font-size: 1.1rem; 
-        }
+        .main-header-banner p { margin: 5px 0 0 0; font-weight: 700; font-size: 1.1rem; }
 
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         #status { text-align: center; padding: 15px; background: #e0f2fe; color: #0369a1; border-radius: 8px; font-weight: bold; margin-bottom: 20px; margin-top: 20px;}
 
         /* TABS */
-        .tabs-container { 
-            display: flex; 
-            justify-content: center; 
-            gap: 15px; 
-            margin-top: 25px; 
-            margin-bottom: 30px; 
-        }
+        .tabs-container { display: flex; justify-content: center; gap: 15px; margin-top: 25px; margin-bottom: 30px; }
         .tab-btn { 
-            background: var(--card-bg); 
-            color: var(--text-muted); 
-            padding: 12px 30px; 
-            border: none; 
-            border-radius: 12px; 
-            font-size: 1.1rem; 
-            font-weight: 900; 
-            text-transform: uppercase;
-            cursor: pointer; 
-            transition: all 0.3s ease; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            background: var(--card-bg); color: var(--text-muted); padding: 12px 30px; border: none; 
+            border-radius: 12px; font-size: 1.1rem; font-weight: 900; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
         }
         .tab-btn:hover { transform: translateY(-2px); }
         .tab-btn.active-sql { background: var(--tab-sql); color: white; box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3); }
-        .tab-btn.active-sheets { background: var(--tab-regional); color: white; box-shadow: 0 6px 15px rgba(249, 115, 22, 0.3); }
+        .tab-btn.active-sheets { background: var(--tab-sheets); color: white; box-shadow: 0 6px 15px rgba(249, 115, 22, 0.3); }
         .tab-btn.active-forms { background: var(--text-dark); color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); }
 
         .panel { display: none; }
@@ -86,13 +68,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* FILTROS */
-        .filters-wrapper {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            margin-bottom: 25px;
-        }
+        .filters-wrapper { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); margin-bottom: 25px; }
         .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .filter-group { display: flex; flex-direction: column; }
         .filter-group label { font-size: 0.8rem; font-weight: 900; margin-bottom: 8px; color: var(--text-dark); text-transform: uppercase; }
@@ -100,42 +76,30 @@
 
         /* SINGLE BIG KPI */
         .kpi-wrapper { margin-bottom: 25px; display: flex; gap: 20px; }
-        .kpi-single { 
-            flex: 1;
-            background: var(--card-bg); 
-            border-radius: 16px; 
-            padding: 30px; 
-            text-align: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
-        }
-        .kpi-single.center-only {
-            max-width: 800px;
-            margin: 0 auto;
-            flex: none;
-            width: 100%;
-        }
+        .kpi-single { flex: 1; background: var(--card-bg); border-radius: 16px; padding: 30px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .kpi-single.center-only { max-width: 800px; margin: 0 auto; flex: none; width: 100%; }
         .kpi-title { font-size: 1rem; color: var(--text-dark); font-weight: 900; text-transform: uppercase; margin-bottom: 10px; }
         .kpi-number { font-size: 3.5rem; font-weight: 900; }
         .text-orange { color: #ea580c; }
         .text-red { color: #dc2626; }
 
-        /* GRÁFICOS */
+        /* GRÁFICOS (Renderizados en alta resolución) */
         .charts-3-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 25px; }
         .chart-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .chart-title { text-align: center; font-weight: 900; color: var(--text-dark); text-transform: uppercase; margin-bottom: 20px; font-size: 0.95rem; }
-        .canvas-container { position: relative; height: 300px; width: 100%; }
+        .canvas-container { position: relative; height: 320px; width: 100%; }
 
         /* SECCIÓN CIERRES PENDIENTES */
         .cierres-section { background: var(--card-bg); border-radius: 16px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
-        .cierres-title { text-align: center; color: var(--red-alert); font-weight: 900; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 25px; display: flex; justify-content: center; gap: 10px; align-items: center; }
-        .tl-row { margin-bottom: 25px; }
-        .tl-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--text-dark); margin-bottom: 8px; font-size: 1rem; }
+        .cierres-title { text-align: center; color: var(--red-alert); font-weight: 900; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 30px; display: flex; justify-content: center; gap: 10px; align-items: center; }
+        .tl-row { margin-bottom: 30px; }
+        .tl-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--text-dark); margin-bottom: 10px; font-size: 1rem; }
         .tl-count { color: var(--red-alert); font-size: 0.85rem; }
-        .tl-bar-bg { background: var(--red-bg); height: 12px; border-radius: 6px; width: 100%; overflow: hidden; margin-bottom: 8px; }
+        .tl-bar-bg { background: var(--red-bg); height: 12px; border-radius: 6px; width: 100%; overflow: hidden; margin-bottom: 10px; }
         .tl-bar-fill { background: var(--red-alert); height: 100%; border-radius: 6px; transition: width 0.5s ease; }
-        .tl-folios { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; line-height: 1.4;}
+        .tl-folios { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; line-height: 1.5;}
 
-        /* TARJETAS INFERIORES IDÉNTICAS A GRID */
+        /* TARJETAS INFERIORES */
         .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 25px; }
         .audi-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-light); display: flex; flex-direction: column; }
         .audi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
@@ -149,8 +113,6 @@
         .dy-item:first-child { border-top: none; padding-top: 0; margin-top: 0; }
         .dy-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
         .dy-value { font-size: 0.85rem; color: var(--text-dark); font-weight: 700;}
-        .dy-link { color: #2563eb; font-weight: 900; text-decoration: none; }
-        .dy-link:hover { text-decoration: underline; }
 
         .table-container { max-height: 500px; overflow-y: auto; background: white; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); padding: 20px;}
         table { width: 100%; border-collapse: collapse; }
@@ -185,12 +147,12 @@
             </div>
         </div>
 
-        <div class="kpi-wrapper">
-            <div class="kpi-single">
+        <div class="kpi-wrapper" style="display: flex; gap: 20px;">
+            <div class="kpi-single" style="flex: 1; max-width:none;">
                 <div class="kpi-title">TOTAL INBOUNDS AFECTADOS</div>
                 <div class="kpi-number text-red" id="kpi-inbounds">0</div>
             </div>
-            <div class="kpi-single">
+            <div class="kpi-single" style="flex: 1; max-width:none;">
                 <div class="kpi-title">IMPACTO TOTAL (USD)</div>
                 <div class="kpi-number text-red" id="kpi-usd">$0.00</div>
             </div>
@@ -270,12 +232,6 @@
             <div class="chart-card"><div class="chart-title">HISTÓRICO POR TEAM LEADER</div><div class="canvas-container"><canvas id="chartTLForms"></canvas></div></div>
         </div>
 
-        <!-- INDICADOR DE CIERRES PENDIENTES -->
-        <div class="cierres-section">
-            <div class="cierres-title">🚨 INDICADOR: TEAM LEADERS CON CIERRES PENDIENTES</div>
-            <div id="cierres-forms-list"></div>
-        </div>
-
         <div class="cards-grid" id="contenido-forms-cards"></div>
     </div>
 </div>
@@ -290,6 +246,8 @@
 
     Chart.defaults.font.family = "'Montserrat', sans-serif";
     Chart.defaults.font.weight = "700";
+    // Forzamos alta resolución en dispositivos
+    Chart.defaults.devicePixelRatio = window.devicePixelRatio > 1 ? window.devicePixelRatio : 2;
 
     function formatearDinero(num) { return '$' + (parseFloat(num) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function parseFecha(str) {
@@ -313,14 +271,25 @@
         return null;
     }
 
-    // LISTA EXPANDIDA DE LLAVES PARA ATRAPAR EL TEAM LEADER
+    // EXTRACCIÓN DE FOLIO LIMPIO (Ej. "CDP0109")
+    function limpiarFolio(texto) {
+        if (!texto) return 'Sin Folio';
+        let match = String(texto).match(/CDP\d+/i);
+        return match ? match[0].toUpperCase() : String(texto).split(' -')[0].trim();
+    }
+
+    // LLAVES ESPECÍFICAS DE COLUMNAS
     const KEYS_FECHA_S = ['Fecha de detección', 'Marca temporal', 'Fecha Auditoria']; 
-    const KEYS_AUDI_S = ['Auditor LP', 'Auditor', 'Auditor 1']; 
-    const KEYS_PROC_S = ['Proceso Madre', 'Proceso', 'TIPO DE AUDITORIA']; 
-    const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria', 'Tipo de Incidencia']; 
-    const KEYS_MELI_S = ['MELI', 'Subject e-mail', 'Folio', 'MELICAM', 'ID'];
-    const KEYS_TL_S = ['Team Leader', 'Líder', 'COL_20', 'col_20', 'TEAM LEADER'];
-    const KEYS_CIERRE_S = ['Cierre', 'Matriz de Disciplina', 'Estatus', 'COL_22', 'col_22', 'COL_13', 'col_13'];
+    const KEYS_AUDI_S = ['Auditor LP', 'Auditor', 'Auditor 1', 'COL_8', 'col_8']; 
+    const KEYS_PROC_S = ['Proceso Madre', 'Proceso', 'TIPO DE AUDITORIA', 'COL_9', 'col_9']; 
+    const KEYS_TIPO_S = ['Tipo de Hallazgo', 'Auditoria', 'Tipo de Incidencia', 'COL_13', 'col_13']; 
+    const KEYS_MELI_S = ['Subject e-mail', 'MELI', 'Folio', 'MELICAM', 'ID', 'COL_6', 'col_6'];
+    
+    // COLUMNA T EXACTA PARA TEAM LEADER
+    const KEYS_TL_S = ['Team Leader', 'COL_20', 'col_20'];
+    
+    // COLUMNA W EXACTA PARA CIERRE
+    const KEYS_CIERRE_S = ['Cierre', 'COL_23', 'col_23'];
 
     // UTILIDAD: RENDERIZAR BARRAS DE CIERRES PENDIENTES
     function renderCierresPendientes(cierresDict, containerId) {
@@ -342,7 +311,7 @@
                         <span class="tl-count">${folios.length} Pendiente(s)</span>
                     </div>
                     <div class="tl-bar-bg"><div class="tl-bar-fill" style="width: ${pct}%"></div></div>
-                    <div class="tl-folios">Folios por cerrar: ${folios.join(', ')}</div>
+                    <div class="tl-folios"><strong>Folios por cerrar:</strong> ${folios.join(', ')}</div>
                 </div>
             `;
         });
@@ -439,13 +408,16 @@
     }
 
     // ==========================================
-    // LÓGICA AUDITORÍAS REGIONAL (SHEETS)
+    // LÓGICA AUDITORÍAS REGIONAL (SHEETS - EL MAS IMPORTANTE)
     // ==========================================
     function poblarFiltrosSheets(datos) {
         const proc = new Set(), tl = new Set();
         datos.forEach(d => { 
+            // Ignorar la fila de headers si n8n la devolvió
+            if (d.COL_7 === "Fecha de detección") return;
+            
             let p = buscarValor(d, KEYS_PROC_S); if(p) proc.add(p); 
-            let t = buscarValor(d, KEYS_TL_S); if(t) tl.add(t); 
+            let t = buscarValor(d, KEYS_TL_S); if(t && t.trim() !== '') tl.add(t); 
         });
         Array.from(proc).sort().forEach(x => document.getElementById('filter-proceso').innerHTML += `<option value="${x}">${x}</option>`);
         Array.from(tl).sort().forEach(x => document.getElementById('filter-tl').innerHTML += `<option value="${x}">${x}</option>`);
@@ -456,12 +428,17 @@
         const dIni = fIni ? new Date(fIni + 'T00:00:00') : null;
 
         const res = datosSheets.filter(d => {
-            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', tl = buscarValor(d, KEYS_TL_S) || '', meli = buscarValor(d, KEYS_MELI_S) || '';
+            // Ignorar encabezados
+            if (d.COL_7 === "Fecha de detección" || d["Fecha de detección"] === "Fecha de detección") return false;
+
+            const fCrea = buscarValor(d, KEYS_FECHA_S) || '', proc = buscarValor(d, KEYS_PROC_S) || '', tl = buscarValor(d, KEYS_TL_S) || '', meliBruto = buscarValor(d, KEYS_MELI_S) || '';
+            let meliLimpio = limpiarFolio(meliBruto);
+
             let dt = parseFecha(fCrea);
             if (dt && dIni && dt < dIni) return false;
             if (pSel && proc !== pSel) return false;
             if (tlSel && tl !== tlSel) return false;
-            if (qId && !String(meli).toLowerCase().includes(qId)) return false;
+            if (qId && !String(meliLimpio).toLowerCase().includes(qId)) return false;
             if (qGen && !Object.values(d).join(' ').toLowerCase().includes(qGen)) return false;
             return true;
         });
@@ -470,22 +447,31 @@
         const countTipo = {}, countAuditor = {}, countTL = {}, cierresPendientes = {}; 
         let htmlCards = '';
         
-        // Excluir llaves sistémicas de las tarjetas
+        // Excluir llaves sistémicas de las tarjetas para no repetir
         const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, ...KEYS_CIERRE_S, 'json', 'row_number'];
 
         res.forEach(d => {
-            const meli = buscarValor(d, KEYS_MELI_S) || 'Sin Folio';
+            const meliBruto = buscarValor(d, KEYS_MELI_S);
+            const meli = limpiarFolio(meliBruto);
             const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
             const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
-            const tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
             
+            // Extracción estricta de Columna T (Team Leader)
+            let tl = buscarValor(d, KEYS_TL_S);
+            if (!tl || String(tl).trim() === '') tl = 'Sin asignar';
+            
+            // Validar para gráficas
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
 
-            // Lógica de Cierres
+            // ESTRICTO: Columna W (Cierre)
             let statusCierre = buscarValor(d, KEYS_CIERRE_S);
-            let isPending = !statusCierre || String(statusCierre).trim() === '' || String(statusCierre).toLowerCase().includes('pendiente') || String(statusCierre).toLowerCase() === 'feedback' || String(statusCierre).trim() === '-';
+            let stringCierre = String(statusCierre).trim().toLowerCase();
+            
+            // Solo es Abierto si la columna W dice explícitamente "Abierto".
+            let isPending = (stringCierre === 'abierto');
+            
             if (isPending && tl && tl !== 'Sin asignar') {
                 if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
                 cierresPendientes[tl].push(meli);
@@ -496,8 +482,6 @@
                 let val = d[key];
                 if (val && String(val).trim() !== '' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
                     if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
-                    
-                    // Limpiar nombres de columnas raras de n8n
                     let displayKey = key.startsWith('COL_') || key.startsWith('col_') ? 'Dato Extra' : key;
                     htmlDyn += `<div class="dy-item"><span class="dy-label">${displayKey}</span><span class="dy-value">${val}</span></div>`;
                 }
@@ -520,19 +504,28 @@
         renderCierresPendientes(cierresPendientes, 'cierres-sheets-list');
 
         if (chartTipoS) chartTipoS.destroy();
-        chartTipoS = new Chart(document.getElementById('chartTipoSheets').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '50%' }});
+        chartTipoS = new Chart(document.getElementById('chartTipoSheets').getContext('2d'), { 
+            type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }
+        });
 
         const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
         if (chartAuditorS) chartAuditorS.destroy();
-        chartAuditorS = new Chart(document.getElementById('chartAuditorSheets').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        chartAuditorS = new Chart(document.getElementById('chartAuditorSheets').getContext('2d'), { 
+            type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }
+        });
 
         const tls = Object.keys(countTL).sort((a,b) => countTL[b] - countTL[a]);
         if (chartTLS) chartTLS.destroy();
-        chartTLS = new Chart(document.getElementById('chartTLSheets').getContext('2d'), { type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        chartTLS = new Chart(document.getElementById('chartTLSheets').getContext('2d'), { 
+            type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }
+        });
     }
 
     // ==========================================
-    // LÓGICA HISTÓRICO (FORMS)
+    // LÓGICA HISTÓRICO (FORMS - OPCIONAL SI LO USAS)
     // ==========================================
     function poblarFiltrosForms(datos) {
         const proc = new Set(), tl = new Set();
@@ -559,64 +552,28 @@
             return true;
         });
 
-        res.sort((a, b) => (parseFecha(buscarValor(b, KEYS_FECHA_S))||0) - (parseFecha(buscarValor(a, KEYS_FECHA_S))||0));
-        const countTipo = {}, countAuditor = {}, countTL = {}, cierresPendientes = {}; 
-        let htmlCards = '';
-        const omitirKeys = [...KEYS_FECHA_S, ...KEYS_AUDI_S, ...KEYS_TIPO_S, ...KEYS_MELI_S, ...KEYS_CIERRE_S, 'json', 'row_number'];
-
+        const countTipo = {}, countAuditor = {}, countTL = {};
         res.forEach(d => {
-            const meli = buscarValor(d, KEYS_MELI_S) || 'Sin Folio';
             const tipo = buscarValor(d, KEYS_TIPO_S) || 'Sin Clasificar';
             const a1 = buscarValor(d, KEYS_AUDI_S) || 'Sin asignar';
-            const tl = buscarValor(d, KEYS_TL_S) || 'Sin asignar';
-            
+            let tl = buscarValor(d, KEYS_TL_S); if (!tl || String(tl).trim() === '') tl = 'Sin asignar';
             countTipo[tipo] = (countTipo[tipo] || 0) + 1; 
             countAuditor[a1] = (countAuditor[a1] || 0) + 1;
             countTL[tl] = (countTL[tl] || 0) + 1;
-
-            let statusCierre = buscarValor(d, KEYS_CIERRE_S);
-            let isPending = !statusCierre || String(statusCierre).trim() === '' || String(statusCierre).toLowerCase().includes('pendiente') || String(statusCierre).toLowerCase() === 'feedback' || String(statusCierre).trim() === '-';
-            if (isPending && tl && tl !== 'Sin asignar') {
-                if(!cierresPendientes[tl]) cierresPendientes[tl] = [];
-                cierresPendientes[tl].push(meli);
-            }
-
-            let htmlDyn = '';
-            for (let key in d) {
-                let val = d[key];
-                if (val && String(val).trim() !== '' && !omitirKeys.some(ok => ok.toLowerCase() === key.toLowerCase())) {
-                    if (String(val).startsWith('http')) val = `<a href="${val}" target="_blank" class="dy-link">Evidencia 🔗</a>`;
-                    let displayKey = key.startsWith('COL_') || key.startsWith('col_') ? 'Dato Extra' : key;
-                    htmlDyn += `<div class="dy-item"><span class="dy-label">${displayKey}</span><span class="dy-value">${val}</span></div>`;
-                }
-            }
-
-            htmlCards += `
-            <div class="audi-card">
-                <div class="audi-header">
-                    <span class="audi-meli">${meli}</span>
-                    <span class="audi-tag">${tipo}</span>
-                </div>
-                <div class="audi-auditor">Auditor: <span>${a1}</span></div>
-                <div class="audi-dynamic">${htmlDyn}</div>
-            </div>`;
         });
 
-        document.getElementById('contenido-forms-cards').innerHTML = htmlCards || '<h3 style="grid-column:1/-1; text-align:center;">Sin resultados.</h3>';
         document.getElementById('kpi-forms-total').innerText = res.length;
-        
-        renderCierresPendientes(cierresPendientes, 'cierres-forms-list');
 
         if (chartTipoF) chartTipoF.destroy();
-        chartTipoF = new Chart(document.getElementById('chartTipoForms').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } }, cutout: '50%' }});
+        chartTipoF = new Chart(document.getElementById('chartTipoForms').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(countTipo), datasets: [{ data: Object.values(countTipo), backgroundColor: coloresPaleta }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: {font: {family: "'Montserrat', sans-serif"}} } }, cutout: '50%' }});
 
         const as = Object.keys(countAuditor).sort((a,b) => countAuditor[b] - countAuditor[a]);
         if (chartAuditorF) chartAuditorF.destroy();
-        chartAuditorF = new Chart(document.getElementById('chartAuditorForms').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        chartAuditorF = new Chart(document.getElementById('chartAuditorForms').getContext('2d'), { type: 'bar', data: { labels: as, datasets: [{ data: as.map(a => countAuditor[a]), backgroundColor: as.map((_, i) => coloresPaleta[i % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }});
 
         const tls = Object.keys(countTL).sort((a,b) => countTL[b] - countTL[a]);
         if (chartTLF) chartTLF.destroy();
-        chartTLF = new Chart(document.getElementById('chartTLForms').getContext('2d'), { type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+        chartTLF = new Chart(document.getElementById('chartTLForms').getContext('2d'), { type: 'bar', data: { labels: tls, datasets: [{ data: tls.map(t => countTL[t]), backgroundColor: tls.map((_, i) => coloresPaleta[(i+5) % coloresPaleta.length]), borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: {family: "'Montserrat', sans-serif"} } }, y: { ticks: { font: {family: "'Montserrat', sans-serif"} } } } }});
     }
 </script>
 </body>
